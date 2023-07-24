@@ -5,6 +5,10 @@ from [animethemes.moe](https://animethemes.moe).
 
 **Since the AniDB ID is used to find the matching themes, you'll need to install the AniDB plugin.**
 
+## How to use
+
+Currently the scan runs as a `ILibraryPostScanTask`, meaning it will run after a full scan of your library.
+
 ## Configuration
 
 | Configuration           | Default | Description                                                                                                        |
