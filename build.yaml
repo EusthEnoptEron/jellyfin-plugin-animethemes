@@ -1,16 +1,17 @@
 ---
-name: "Template"
-guid: "eb5d7894-8eef-4b36-aa6f-5d124e828ce1"
+name: "AnimeThemes"
+guid: "086022b5-29fb-4f89-a298-3d595492a5ed"
 version: "1.0.0.0"
 targetAbi: "10.8.0.0"
 framework: "net6.0"
-overview: "Short description about your plugin"
+overview: "Experimental Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe"
 description: >
-  This is a longer description that can span more than one
-  line and include details about your plugin.
+  Experimental Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe.
+
+  **Since the AniDB ID is used to find the matching themes, you'll need to install the AniDB plugin.**
 category: "General"
-owner: "jellyfin"
+owner: "EusthEnoptEron"
 artifacts:
-- "Jellyfin.Plugin.Template.dll"
+  - "Jellyfin.Plugin.AnimeThemes.dll"
 changelog: >
   changelog
