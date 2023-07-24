@@ -8,13 +8,11 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Data.Enums;
+using Jellyfin.Plugin.AnimeThemes.Configuration;
 using Jellyfin.Plugin.AnimeThemes.Models;
-using MediaBrowser.Common;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.MediaEncoding;
-using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.System;
 using Microsoft.Extensions.Logging;
 using Video = Jellyfin.Plugin.AnimeThemes.Models.Video;
 
@@ -28,7 +26,7 @@ public class AnimeThemesDownloader : IDisposable
     private readonly HttpClient _client;
     private readonly AnimeThemesApi _api;
     private readonly ILogger<AnimeThemesDownloader> _logger;
-    private IMediaEncoder _mediaEncoder;
+    private readonly IMediaEncoder _mediaEncoder;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AnimeThemesDownloader"/> class.
@@ -47,9 +45,10 @@ public class AnimeThemesDownloader : IDisposable
     /// Processes an item, downloading its theme if applicable.
     /// </summary>
     /// <param name="item">The DB item to process.</param>
+    /// <param name="configuration">Configuration of the plugin.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task that runts until item is done processing.</returns>
-    public async ValueTask Process(BaseItem item, CancellationToken cancellationToken)
+    public async ValueTask Process(BaseItem item, PluginConfiguration configuration, CancellationToken cancellationToken)
     {
         _logger.LogInformation("[{Id}] Getting theme song for item", item.Id);
 
@@ -69,30 +68,45 @@ public class AnimeThemesDownloader : IDisposable
         _logger.LogInformation("[{Id}] Attempting to get theme song for anime: {Name} (AniDB={AniId})", item.Id, item.Name, id);
 
         // Get audio
-        var audios = GetBestAudios(anime).ToArray();
+        var audios = GetBestAudios(anime, configuration).ToArray();
 
         _logger.LogInformation("[{Id}] Found {Count} entries", item.Id, audios.Length);
 
-        var bestAudio = audios.FirstOrDefault();
-        if (bestAudio == null)
+        if (configuration.FetchAll)
         {
-            return;
+            // Download them all into "theme-music"
+            var themes = audios.DistinctBy(it => it.Theme.Id);
+            foreach (var theme in themes)
+            {
+                await Download(theme.Audio, item, Path.Combine("theme-music", theme.Theme.Slug + ".mp3"), configuration.VolumeFactor, cancellationToken).ConfigureAwait(false);
+            }
         }
+        else
+        {
+            // Pick best audio
+            var bestAudio = audios.Select(it => it.Audio).FirstOrDefault();
+            if (bestAudio == null)
+            {
+                return;
+            }
 
-        _logger.LogInformation("[{Id}] Best audio = {Audio}", item.Id, bestAudio);
+            _logger.LogInformation("[{Id}] Best audio = {Audio}", item.Id, bestAudio);
 
-        // Download audio
-        await Download(bestAudio, item, cancellationToken).ConfigureAwait(false);
+            // Download audio
+            await Download(bestAudio, item, volumeFactor: configuration.VolumeFactor, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
     }
 
-    private async ValueTask Download(Audio audio, BaseItem item, CancellationToken cancellationToken = default)
+    private async ValueTask Download(Audio audio, BaseItem item, string filename = "theme.mp3", double volumeFactor = 1.0, CancellationToken cancellationToken = default)
     {
         try
         {
-            var extension = Path.GetExtension(audio.Path);
             var tempFile = Path.GetTempFileName();
-            var path = Path.Combine(item.Path, "theme.mp3");
+            var path = Path.Combine(item.Path, filename);
+            // Make sure directory exists
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             {
+                _logger.LogInformation("[{Id}] Downloading {Url} to {Path}", item.Id, audio.Link, path);
                 using var downloadStream = await _client.GetStreamAsync(audio.Link, cancellationToken).ConfigureAwait(false);
                 using var fileStream = File.OpenWrite(tempFile);
 
@@ -113,7 +127,14 @@ public class AnimeThemesDownloader : IDisposable
                     FileName = _mediaEncoder.EncoderPath,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     ErrorDialog = false,
-                    ArgumentList = { "-i", tempFile, path }
+                    ArgumentList =
+                    {
+                        "-i",
+                        tempFile,
+                        "-filter:a",
+                        $"volume={volumeFactor:0.00}",
+                        path
+                    }
                 },
                 EnableRaisingEvents = true
             };
@@ -152,12 +173,13 @@ public class AnimeThemesDownloader : IDisposable
         return false;
     }
 
-    private IEnumerable<Audio> GetBestAudios(Anime anime)
+    private IEnumerable<(AnimeTheme Theme, AnimeThemeEntry Entry, Video Video, Audio Audio)> GetBestAudios(Anime anime, PluginConfiguration configuration)
     {
         return anime.Themes.SelectMany(theme => theme.Entries.SelectMany(entry => entry.Videos.Select(video => Wrap(theme, entry, video))))
             .OrderBy(Rate)
-            .Select(tuple => tuple.Audio)
-            .ToArray();
+            .Where(it => !configuration.IgnoreOverlapping || it.Video.Overlap == OverlapType.None)
+            .Where(it => !configuration.IgnoreEDs || it.Theme.Type != ThemeType.ED)
+            .Where(it => !configuration.IgnoreOPs || it.Theme.Type != ThemeType.OP);
     }
 
     private (AnimeTheme Theme, AnimeThemeEntry Entry, Video Video, Audio Audio) Wrap(AnimeTheme theme, AnimeThemeEntry entry, Video video)

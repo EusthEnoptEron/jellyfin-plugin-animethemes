@@ -3,22 +3,6 @@ using MediaBrowser.Model.Plugins;
 namespace Jellyfin.Plugin.AnimeThemes.Configuration;
 
 /// <summary>
-/// The configuration options.
-/// </summary>
-public enum SomeOptions
-{
-    /// <summary>
-    /// Option one.
-    /// </summary>
-    OneOption,
-
-    /// <summary>
-    /// Second option.
-    /// </summary>
-    AnotherOption
-}
-
-/// <summary>
 /// Plugin configuration.
 /// </summary>
 public class PluginConfiguration : BasePluginConfiguration
@@ -29,29 +13,41 @@ public class PluginConfiguration : BasePluginConfiguration
     public PluginConfiguration()
     {
         // set default options here
-        Options = SomeOptions.AnotherOption;
-        TrueFalseSetting = true;
-        AnInteger = 2;
-        AString = "string";
+        IgnoreOverlapping = true;
+        IgnoreEDs = false;
+        IgnoreOPs = false;
+        FetchAll = false;
+        VolumeFactor = 0.5;
+        DegreeOfParallelism = 1;
     }
 
     /// <summary>
     /// Gets or sets a value indicating whether some true or false setting is enabled..
     /// </summary>
-    public bool TrueFalseSetting { get; set; }
+    public bool IgnoreOverlapping { get; set; }
 
     /// <summary>
-    /// Gets or sets an integer setting.
+    /// Gets or sets a value indicating whether to ignore ED themes.
     /// </summary>
-    public int AnInteger { get; set; }
+    public bool IgnoreEDs { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to ignore OP themes.
+    /// </summary>
+    public bool IgnoreOPs { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to fetch all themes.
+    /// </summary>
+    public bool FetchAll { get; set; }
+
+    /// <summary>
+    /// Gets or sets an volume setting.
+    /// </summary>
+    public double VolumeFactor { get; set; }
 
     /// <summary>
     /// Gets or sets a string setting.
     /// </summary>
-    public string AString { get; set; }
-
-    /// <summary>
-    /// Gets or sets an enum option.
-    /// </summary>
-    public SomeOptions Options { get; set; }
+    public int DegreeOfParallelism { get; set; }
 }

@@ -35,6 +35,7 @@ public sealed class ThemeSearchTask : ILibraryPostScanTask, IDisposable
     public async Task Run(IProgress<double> progress, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting theme search");
+        var configuration = Plugin.Instance!.Configuration;
 
         // @formatter:off
         var items = _manager.GetItemList(new InternalItemsQuery
@@ -46,17 +47,26 @@ public sealed class ThemeSearchTask : ILibraryPostScanTask, IDisposable
         });
         // @formatter:on
 
-        int count = 0;
-        foreach (var item in items)
+        var semaphore = new SemaphoreSlim(1, 1);
+        int counter = 0;
+        int count = items.Count;
+        // Process in parallel
+        await Parallel.ForEachAsync(items, new ParallelOptions() { CancellationToken = cancellationToken, MaxDegreeOfParallelism = configuration.DegreeOfParallelism }, async (item, ct) =>
         {
-            await _downloader.Process(item, cancellationToken).ConfigureAwait(false);
-            if (count++ > 5)
+            await _downloader.Process(item, configuration, ct).ConfigureAwait(false);
+            await semaphore.WaitAsync(ct).ConfigureAwait(false);
+            try
             {
-                break;
+                counter++;
+                progress.Report(counter / (double)count);
             }
-        }
+            finally
+            {
+                semaphore.Release();
+            }
+        }).ConfigureAwait(false);
 
-        _logger.LogInformation("Ending theme search ({Count})", items.Count);
+        _logger.LogInformation("Ending theme search ({Count})", count);
     }
 
     /// <summary>

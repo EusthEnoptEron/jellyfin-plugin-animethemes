@@ -10,6 +10,7 @@ namespace Jellyfin.Plugin.AnimeThemes.Models;
 /// <param name="Type">The type of the sequence [OP, ED].</param>
 /// <param name="Sequence">The numeric ordering of the theme.</param>
 /// <param name="Group">Used to distinguish sequence belongs to dubs, rebroadcasts, etc.</param>
+/// <param name="Slug">The URL slug &amp; route key of the resource.</param>
 /// <param name="Entries">Entries of the theme.</param>
 public record AnimeTheme(
     [property: JsonPropertyName("id")] int Id,
@@ -17,6 +18,7 @@ public record AnimeTheme(
     [property: JsonPropertyName("sequence")]
     int? Sequence,
     [property: JsonPropertyName("group")] string? Group,
+    [property: JsonPropertyName("slug")] string? Slug,
     [property: JsonPropertyName("animethemeentries")]
     Collection<AnimeThemeEntry> Entries
 );

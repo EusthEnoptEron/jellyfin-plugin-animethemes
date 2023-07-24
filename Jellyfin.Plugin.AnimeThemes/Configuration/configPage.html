@@ -2,70 +2,90 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Template</title>
+    <title>AnimeThemes</title>
 </head>
 <body>
-    <div id="TemplateConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
-        <div data-role="content">
-            <div class="content-primary">
-                <form id="TemplateConfigForm">
-                    <div class="selectContainer">
-                        <label class="selectLabel" for="Options">Several Options</label>
-                        <select is="emby-select" id="Options" name="Options" class="emby-select-withcolor emby-select">
-                            <option id="optOneOption" value="OneOption">One Option</option>
-                            <option id="optAnotherOption" value="AnotherOption">Another Option</option>
-                        </select>
-                    </div>
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="AnInteger">An Integer</label>
-                        <input id="AnInteger" name="AnInteger" type="number" is="emby-input" min="0" />
-                        <div class="fieldDescription">A Description</div>
-                    </div>
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="TrueFalseSetting" name="TrueFalseCheckBox" type="checkbox" is="emby-checkbox" />
-                            <span>A Checkbox</span>
-                        </label>
-                    </div>
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="AString">A String</label>
-                        <input id="AString" name="AString" type="text" is="emby-input" />
-                        <div class="fieldDescription">Another Description</div>
-                    </div>
-                    <div>
-                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
-                            <span>Save</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
+<div id="AnimeThemesConfigPage" data-role="page" class="page type-interior pluginConfigurationPage"
+     data-require="emby-input,emby-button,emby-select,emby-checkbox">
+    <div data-role="content">
+        <div class="content-primary">
+            <form id="AnimeThemesConfigForm">
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="VolumeFactor">Volume</label>
+                    <input id="VolumeFactor" name="VolumeFactor" type="number" is="emby-input" min="0" max="1"
+                           step="0.05"/>
+                    <div class="fieldDescription">Factor to adjust the volume of the downloaded files.</div>
+                </div>
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="DegreeOfParallelism">Degree of
+                        Parallelism</label>
+                    <input id="DegreeOfParallelism" name="DegreeOfParallelism" type="number" is="emby-input" min="0"
+                           max="8" step="1"/>
+                    <div class="fieldDescription">How many files should be downloaded simultaneously.</div>
+                </div>
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label">
+                        <input id="IgnoreOverlapping" name="IgnoreOverlapping" type="checkbox" is="emby-checkbox"/>
+                        <span>Ignore themes with text</span>
+                    </label>
+                </div>
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label">
+                        <input id="IgnoreOPs" name="IgnoreOPs" type="checkbox" is="emby-checkbox"/>
+                        <span>Ignore OP themes</span>
+                    </label>
+                </div>
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label">
+                        <input id="IgnoreEDs" name="IgnoreEDs" type="checkbox" is="emby-checkbox"/>
+                        <span>Ignore ED themes</span>
+                    </label>
+                </div>
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label">
+                        <input id="FetchAll" name="FetchAll" type="checkbox" is="emby-checkbox"/>
+                        <span>Fetch all themes</span>
+                    </label>
+                </div>
+                <div>
+                    <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                        <span>Save</span>
+                    </button>
+                </div>
+            </form>
         </div>
-        <script type="text/javascript">
-            var TemplateConfig = {
-                pluginUniqueId: 'eb5d7894-8eef-4b36-aa6f-5d124e828ce1'
-            };
+    </div>
+    <script type="text/javascript">
+        var AnimeThemesConfig = {
+            pluginUniqueId: '086022b5-29fb-4f89-a298-3d595492a5ed'
+        };
 
-            document.querySelector('#TemplateConfigPage')
-                .addEventListener('pageshow', function() {
-                    Dashboard.showLoadingMsg();
-                    ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
-                        document.querySelector('#Options').value = config.Options;
-                        document.querySelector('#AnInteger').value = config.AnInteger;
-                        document.querySelector('#TrueFalseSetting').checked = config.TrueFalseSetting;
-                        document.querySelector('#AString').value = config.AString;
-                        Dashboard.hideLoadingMsg();
-                    });
-                });
-
-            document.querySelector('#TemplateConfigForm')
-                .addEventListener('submit', function(e) {
+        document.querySelector('#AnimeThemesConfigPage')
+            .addEventListener('pageshow', function () {
                 Dashboard.showLoadingMsg();
-                ApiClient.getPluginConfiguration(TemplateConfig.pluginUniqueId).then(function (config) {
-                    config.Options = document.querySelector('#Options').value;
-                    config.AnInteger = document.querySelector('#AnInteger').value;
-                    config.TrueFalseSetting = document.querySelector('#TrueFalseSetting').checked;
-                    config.AString = document.querySelector('#AString').value;
-                    ApiClient.updatePluginConfiguration(TemplateConfig.pluginUniqueId, config).then(function (result) {
+
+                ApiClient.getPluginConfiguration(AnimeThemesConfig.pluginUniqueId).then(function (config) {
+                    document.querySelector('#DegreeOfParallelism').value = config.DegreeOfParallelism;
+                    document.querySelector('#VolumeFactor').value = config.VolumeFactor;
+                    document.querySelector('#IgnoreOverlapping').checked = config.IgnoreOverlapping;
+                    document.querySelector('#IgnoreEDs').checked = config.IgnoreEDs;
+                    document.querySelector('#IgnoreOPs').checked = config.IgnoreOPs;
+                    document.querySelector('#FetchAll').checked = config.FetchAll;
+                    Dashboard.hideLoadingMsg();
+                });
+            });
+
+        document.querySelector('#AnimeThemesConfigForm')
+            .addEventListener('submit', function (e) {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(AnimeThemesConfig.pluginUniqueId).then(function (config) {
+                    config.DegreeOfParallelism = document.querySelector('#DegreeOfParallelism').value;
+                    config.VolumeFactor = document.querySelector('#VolumeFactor').value;
+                    config.IgnoreOverlapping = document.querySelector('#IgnoreOverlapping').checked;
+                    config.IgnoreEDs = document.querySelector('#IgnoreEDs').checked;
+                    config.IgnoreOPs = document.querySelector('#IgnoreOPs').checked;
+                    config.FetchAll = document.querySelector('#FetchAll').checked;
+                    ApiClient.updatePluginConfiguration(AnimeThemesConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });
                 });
@@ -73,7 +93,7 @@
                 e.preventDefault();
                 return false;
             });
-        </script>
-    </div>
+    </script>
+</div>
 </body>
 </html>
