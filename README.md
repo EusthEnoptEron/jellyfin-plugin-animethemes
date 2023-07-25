@@ -7,7 +7,12 @@ from [animethemes.moe](https://animethemes.moe).
 
 ## How to use
 
-Currently the scan runs as a `ILibraryPostScanTask`, meaning it will run after a full scan of your library.
+Currently the scan runs as a `ILibraryPostScanTask`, meaning it will run after a full scan of your library. So:
+
+1. Run a full scan of your library.
+2. Refresh metadata to find the new themes.
+
+Also make sure to enable theme music / videos in the display settings.
 
 ## Configuration
 
