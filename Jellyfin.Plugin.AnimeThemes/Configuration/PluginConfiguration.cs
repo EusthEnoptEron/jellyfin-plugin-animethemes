@@ -1,3 +1,4 @@
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Model.Plugins;
 
 namespace Jellyfin.Plugin.AnimeThemes.Configuration;
@@ -16,8 +17,10 @@ public class PluginConfiguration : BasePluginConfiguration
         IgnoreOverlapping = true;
         IgnoreEDs = false;
         IgnoreOPs = false;
-        FetchAll = false;
-        VolumeFactor = 0.5;
+        AudioVolume = 0.5;
+        VideoVolume = 0.0;
+        VideoFetchType = FetchType.None;
+        AudioFetchType = FetchType.Single;
         DegreeOfParallelism = 1;
     }
 
@@ -37,17 +40,48 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool IgnoreOPs { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to fetch all themes.
+    /// Gets or sets an volume setting.
     /// </summary>
-    public bool FetchAll { get; set; }
+    public double AudioVolume { get; set; }
 
     /// <summary>
     /// Gets or sets an volume setting.
     /// </summary>
-    public double VolumeFactor { get; set; }
+    public double VideoVolume { get; set; }
 
     /// <summary>
     /// Gets or sets a string setting.
     /// </summary>
     public int DegreeOfParallelism { get; set; }
+
+    /// <summary>
+    /// Gets or sets how to fetch videos.
+    /// </summary>
+    public FetchType VideoFetchType { get; set; }
+
+    /// <summary>
+    /// Gets or sets how to fetch audio files.
+    /// </summary>
+    public FetchType AudioFetchType { get; set; }
+}
+
+/// <summary>
+/// Enum describing how files should be fetched.
+/// </summary>
+public enum FetchType
+{
+    /// <summary>
+    /// Download nothing.
+    /// </summary>
+    None,
+
+    /// <summary>
+    /// Download only one file.
+    /// </summary>
+    Single,
+
+    /// <summary>
+    /// Download all files.
+    /// </summary>
+    All
 }

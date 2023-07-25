@@ -43,7 +43,6 @@ public sealed class ThemeSearchTask : ILibraryPostScanTask, IDisposable
             IncludeItemTypes = new[] { BaseItemKind.Series },
             IsVirtualItem = false,
             Recursive = true,
-            HasThemeSong = false,
         });
         // @formatter:on
 

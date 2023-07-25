@@ -50,13 +50,13 @@ public class AnimeThemesDownloader : IDisposable
     /// <returns>Task that runts until item is done processing.</returns>
     public async ValueTask Process(BaseItem item, PluginConfiguration configuration, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("[{Id}] Getting theme song for item", item.Id);
-
         // Get AniDB ID
-        if (!TryGetAniDbId(item, out var id))
+        if (!TryGetAniDbId(item, configuration, out var id))
         {
             return;
         }
+
+        _logger.LogInformation("[{Id}] Getting theme song for item", item.Id);
 
         // Get Anime
         var anime = await _api.FindByAniDbId(id, cancellationToken).ConfigureAwait(false);
@@ -68,36 +68,55 @@ public class AnimeThemesDownloader : IDisposable
         _logger.LogInformation("[{Id}] Attempting to get theme song for anime: {Name} (AniDB={AniId})", item.Id, item.Name, id);
 
         // Get audio
-        var audios = GetBestAudios(anime, configuration).ToArray();
+        var themes = GetBestThemes(anime, configuration).DistinctBy(it => it.Theme.Id).ToArray();
 
-        _logger.LogInformation("[{Id}] Found {Count} entries", item.Id, audios.Length);
+        _logger.LogInformation("[{Id}] Found {Count} entries", item.Id, themes.Length);
 
-        if (configuration.FetchAll)
+        // Process videos
+        await ProcessMediaType(MediaType.Video, themes, item, configuration, cancellationToken).ConfigureAwait(false);
+
+        // Process audios
+        await ProcessMediaType(MediaType.Audio, themes, item, configuration, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async ValueTask ProcessMediaType(MediaType type, FlattenedTheme[] themes, BaseItem item, PluginConfiguration configuration, CancellationToken cancellationToken = default)
+    {
+        bool isAudio = type == MediaType.Audio;
+        var fetchType = isAudio ? configuration.AudioFetchType : configuration.VideoFetchType;
+        var volume = isAudio ? configuration.AudioVolume : configuration.VideoVolume;
+
+        if (fetchType == FetchType.Single)
         {
             // Download them all into "theme-music"
-            var themes = audios.DistinctBy(it => it.Theme.Id);
             foreach (var theme in themes)
             {
-                await Download(theme.Audio, item, Path.Combine("theme-music", theme.Theme.Slug + ".mp3"), configuration.VolumeFactor, cancellationToken).ConfigureAwait(false);
+                var link = isAudio ? theme.Audio.Link : theme.Video.Link;
+                var fileName = isAudio
+                    ? Path.Combine("theme-music", theme.Theme.Slug + ".mp3")
+                    : Path.Combine("backdrops", theme.Theme.Slug + ".webm");
+
+                await Download(type, link, item, fileName, volume, cancellationToken).ConfigureAwait(false);
             }
         }
-        else
+        else if (fetchType == FetchType.All)
         {
-            // Pick best audio
-            var bestAudio = audios.Select(it => it.Audio).FirstOrDefault();
-            if (bestAudio == null)
+            // Pick best theme
+            var bestTheme = themes.FirstOrDefault();
+            if (bestTheme == null)
             {
                 return;
             }
 
-            _logger.LogInformation("[{Id}] Best audio = {Audio}", item.Id, bestAudio);
+            _logger.LogInformation("[{Id}] Best theme = {Theme}", item.Id, bestTheme);
 
-            // Download audio
-            await Download(bestAudio, item, volumeFactor: configuration.VolumeFactor, cancellationToken: cancellationToken).ConfigureAwait(false);
+            // Download file
+            var link = isAudio ? bestTheme.Audio.Link : bestTheme.Video.Link;
+            var fileName = isAudio ? "theme.mp3" : Path.Combine("backdrops", bestTheme.Theme.Slug + ".webm");
+            await Download(type, link, item, fileName, volume, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private async ValueTask Download(Audio audio, BaseItem item, string filename = "theme.mp3", double volumeFactor = 1.0, CancellationToken cancellationToken = default)
+    private async ValueTask Download(MediaType type, string url, BaseItem item, string filename = "theme.mp3", double volume = 1.0, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -106,11 +125,11 @@ public class AnimeThemesDownloader : IDisposable
             // Make sure directory exists
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             {
-                _logger.LogInformation("[{Id}] Downloading {Url} to {Path}", item.Id, audio.Link, path);
-                using var downloadStream = await _client.GetStreamAsync(audio.Link, cancellationToken).ConfigureAwait(false);
+                _logger.LogInformation("[{Id}] Downloading {Url} to {Path}", item.Id, url, path);
+                using var downloadStream = await _client.GetStreamAsync(url, cancellationToken).ConfigureAwait(false);
                 using var fileStream = File.OpenWrite(tempFile);
 
-                // Download OGG
+                // Download file
                 await downloadStream.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
             }
 
@@ -127,17 +146,32 @@ public class AnimeThemesDownloader : IDisposable
                     FileName = _mediaEncoder.EncoderPath,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     ErrorDialog = false,
-                    ArgumentList =
-                    {
-                        "-i",
-                        tempFile,
-                        "-filter:a",
-                        $"volume={volumeFactor:0.00}",
-                        path
-                    }
+                    ArgumentList = { "-i", tempFile }
                 },
                 EnableRaisingEvents = true
             };
+
+            // Update arguments
+            var arguments = process.StartInfo.ArgumentList;
+            if (type == MediaType.Video)
+            {
+                // Copy video stream
+                arguments.Add("-c:v");
+                arguments.Add("copy");
+            }
+
+            if (volume < 0.01 && type == MediaType.Video)
+            {
+                // Mute videos when volume is low enough
+                arguments.Add("-an");
+            }
+            else
+            {
+                arguments.Add("-filter:a");
+                arguments.Add($"volume={volume:0.00}");
+            }
+
+            arguments.Add(path);
 
             process.Start();
             var memoryStream = new MemoryStream();
@@ -153,12 +187,15 @@ public class AnimeThemesDownloader : IDisposable
         }
     }
 
-    private bool TryGetAniDbId(BaseItem item, out int id)
+    private bool TryGetAniDbId(BaseItem item, PluginConfiguration configuration, out int id)
     {
         id = -1;
 
+        var audioSatisfied = item.GetThemeSongs().Any() || configuration.AudioFetchType == FetchType.None;
+        var videoSatisfied = item.GetThemeVideos().Any() || configuration.VideoFetchType == FetchType.None;
+
         // Ignore non-series and already processed ones.
-        if (item.GetBaseItemKind() != BaseItemKind.Series || item.GetThemeSongs().Count > 0)
+        if (item.GetBaseItemKind() != BaseItemKind.Series || (audioSatisfied && videoSatisfied))
         {
             _logger.LogInformation("[{Id}] Item was disqualified", item.Id);
             return false;
@@ -173,7 +210,13 @@ public class AnimeThemesDownloader : IDisposable
         return false;
     }
 
-    private IEnumerable<(AnimeTheme Theme, AnimeThemeEntry Entry, Video Video, Audio Audio)> GetBestAudios(Anime anime, PluginConfiguration configuration)
+    /// <summary>
+    /// Gets themes roughly sorted by relevance and filtered as needed.
+    /// </summary>
+    /// <param name="anime">The anime in question.</param>
+    /// <param name="configuration">The configuration that sets the rules.</param>
+    /// <returns>A filtered and sorted and flattened enumerable of themes.</returns>
+    private IEnumerable<FlattenedTheme> GetBestThemes(Anime anime, PluginConfiguration configuration)
     {
         return anime.Themes.SelectMany(theme => theme.Entries.SelectMany(entry => entry.Videos.Select(video => Wrap(theme, entry, video))))
             .OrderBy(Rate)
@@ -182,26 +225,26 @@ public class AnimeThemesDownloader : IDisposable
             .Where(it => !configuration.IgnoreOPs || it.Theme.Type != ThemeType.OP);
     }
 
-    private (AnimeTheme Theme, AnimeThemeEntry Entry, Video Video, Audio Audio) Wrap(AnimeTheme theme, AnimeThemeEntry entry, Video video)
+    private FlattenedTheme Wrap(AnimeTheme theme, AnimeThemeEntry entry, Video video)
     {
-        return (theme, entry, video, video.Audio);
+        return new FlattenedTheme(theme, entry, video, video.Audio);
     }
 
-    private double Rate((AnimeTheme Theme, AnimeThemeEntry Entry, Video Video, Audio Audio) tuple)
+    private double Rate(FlattenedTheme theme)
     {
         double score = 0;
 
-        if (tuple.Entry.Nsfw)
+        if (theme.Entry.Nsfw)
         {
             score += 10;
         }
 
-        if (tuple.Entry.Spoiler)
+        if (theme.Entry.Spoiler)
         {
             score += 10;
         }
 
-        switch (tuple.Video.Overlap)
+        switch (theme.Video.Overlap)
         {
             case OverlapType.Over:
                 score += 10;
@@ -211,7 +254,7 @@ public class AnimeThemesDownloader : IDisposable
                 break;
         }
 
-        switch (tuple.Video.Source)
+        switch (theme.Video.Source)
         {
             case VideoSource.LD:
             case VideoSource.VHS:
@@ -247,4 +290,12 @@ public class AnimeThemesDownloader : IDisposable
         Dispose(true);
         GC.SuppressFinalize(this);
     }
+}
+
+internal record FlattenedTheme(AnimeTheme Theme, AnimeThemeEntry Entry, Video Video, Audio Audio);
+
+internal enum MediaType
+{
+    Video,
+    Audio
 }

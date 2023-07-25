@@ -10,43 +10,79 @@
     <div data-role="content">
         <div class="content-primary">
             <form id="AnimeThemesConfigForm">
-                <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="VolumeFactor">Volume</label>
-                    <input id="VolumeFactor" name="VolumeFactor" type="number" is="emby-input" min="0" max="1"
-                           step="0.05"/>
-                    <div class="fieldDescription">Factor to adjust the volume of the downloaded files.</div>
+                <div class="verticalSection">
+                    <h2>General</h2>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="DegreeOfParallelism">Degree of
+                            Parallelism</label>
+                        <input id="DegreeOfParallelism" name="DegreeOfParallelism" type="number" is="emby-input" min="0"
+                               max="8" step="1"/>
+                        <div class="fieldDescription">How many files should be downloaded simultaneously.</div>
+                    </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="IgnoreOverlapping" name="IgnoreOverlapping" type="checkbox" is="emby-checkbox"/>
+                            <span>Ignore themes with text</span>
+                        </label>
+                    </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="IgnoreOPs" name="IgnoreOPs" type="checkbox" is="emby-checkbox"/>
+                            <span>Ignore OP themes</span>
+                        </label>
+                    </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="IgnoreEDs" name="IgnoreEDs" type="checkbox" is="emby-checkbox"/>
+                            <span>Ignore ED themes</span>
+                        </label>
+                    </div>
                 </div>
-                <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="DegreeOfParallelism">Degree of
-                        Parallelism</label>
-                    <input id="DegreeOfParallelism" name="DegreeOfParallelism" type="number" is="emby-input" min="0"
-                           max="8" step="1"/>
-                    <div class="fieldDescription">How many files should be downloaded simultaneously.</div>
+
+                <div class="verticalSection">
+                    <h2>Audio Files</h2>
+
+                    <div class="selectContainer">
+                        <label class="selectLabel" for="AudioFetchType">Fetch Behavior</label>
+                        <select is="emby-select" id="AudioFetchType" name="AudioFetchType"
+                                class="emby-select-withcolor emby-select">
+                            <option value="None">Don't download</option>
+                            <option value="Single">Single theme</option>
+                            <option value="All">All themes</option>
+                        </select>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="AudioVolume">Volume</label>
+                        <input id="AudioVolume" name="AudioVolume" type="number" is="emby-input" min="0" max="1"
+                               step="0.05"/>
+                        <div class="fieldDescription">How to adjust the volume of the downloaded files.</div>
+                    </div>
                 </div>
-                <div class="checkboxContainer checkboxContainer-withDescription">
-                    <label class="emby-checkbox-label">
-                        <input id="IgnoreOverlapping" name="IgnoreOverlapping" type="checkbox" is="emby-checkbox"/>
-                        <span>Ignore themes with text</span>
-                    </label>
+
+                <div class="verticalSection">
+                    <h2>Video Files</h2>
+
+                    <div class="selectContainer">
+                        <label class="selectLabel" for="VideoFetchType">Fetch Behavior</label>
+                        <select is="emby-select" id="VideoFetchType" name="VideoFetchType"
+                                class="emby-select-withcolor emby-select">
+                            <option value="None">Don't download</option>
+                            <option value="Single">Single theme</option>
+                            <option value="All">All themes</option>
+                        </select>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="VideoVolume">Volume</label>
+                        <input id="VideoVolume" name="VideoVolume" type="number" is="emby-input" min="0" max="1"
+                               step="0.05"/>
+                        <div class="fieldDescription">How to adjust the volume of the downloaded files. Set to 0 to
+                            mute.
+                        </div>
+                    </div>
                 </div>
-                <div class="checkboxContainer checkboxContainer-withDescription">
-                    <label class="emby-checkbox-label">
-                        <input id="IgnoreOPs" name="IgnoreOPs" type="checkbox" is="emby-checkbox"/>
-                        <span>Ignore OP themes</span>
-                    </label>
-                </div>
-                <div class="checkboxContainer checkboxContainer-withDescription">
-                    <label class="emby-checkbox-label">
-                        <input id="IgnoreEDs" name="IgnoreEDs" type="checkbox" is="emby-checkbox"/>
-                        <span>Ignore ED themes</span>
-                    </label>
-                </div>
-                <div class="checkboxContainer checkboxContainer-withDescription">
-                    <label class="emby-checkbox-label">
-                        <input id="FetchAll" name="FetchAll" type="checkbox" is="emby-checkbox"/>
-                        <span>Fetch all themes</span>
-                    </label>
-                </div>
+
                 <div>
                     <button is="emby-button" type="submit" class="raised button-submit block emby-button">
                         <span>Save</span>
@@ -66,11 +102,13 @@
 
                 ApiClient.getPluginConfiguration(AnimeThemesConfig.pluginUniqueId).then(function (config) {
                     document.querySelector('#DegreeOfParallelism').value = config.DegreeOfParallelism;
-                    document.querySelector('#VolumeFactor').value = config.VolumeFactor;
+                    document.querySelector('#AudioVolume').value = config.AudioVolume;
+                    document.querySelector('#VideoVolume').value = config.VideoVolume;
                     document.querySelector('#IgnoreOverlapping').checked = config.IgnoreOverlapping;
                     document.querySelector('#IgnoreEDs').checked = config.IgnoreEDs;
                     document.querySelector('#IgnoreOPs').checked = config.IgnoreOPs;
-                    document.querySelector('#FetchAll').checked = config.FetchAll;
+                    document.querySelector('#AudioFetchType').value = config.AudioFetchType;
+                    document.querySelector('#VideoFetchType').value = config.VideoFetchType;
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -80,11 +118,13 @@
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(AnimeThemesConfig.pluginUniqueId).then(function (config) {
                     config.DegreeOfParallelism = document.querySelector('#DegreeOfParallelism').value;
-                    config.VolumeFactor = document.querySelector('#VolumeFactor').value;
+                    config.AudioVolume = document.querySelector('#AudioVolume').value;
+                    config.VideoVolume = document.querySelector('#VideoVolume').value;
                     config.IgnoreOverlapping = document.querySelector('#IgnoreOverlapping').checked;
                     config.IgnoreEDs = document.querySelector('#IgnoreEDs').checked;
                     config.IgnoreOPs = document.querySelector('#IgnoreOPs').checked;
-                    config.FetchAll = document.querySelector('#FetchAll').checked;
+                    config.AudioFetchType = document.querySelector('#AudioFetchType').value;
+                    config.VideoFetchType = document.querySelector('#VideoFetchType').value;
                     ApiClient.updatePluginConfiguration(AnimeThemesConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });
