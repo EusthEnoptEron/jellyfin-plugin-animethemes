@@ -241,29 +241,38 @@ public class AnimeThemesDownloader : IDisposable
 
         if (theme.Entry.Spoiler)
         {
-            score += 10;
+            // Huge penalty for spoilers
+            score += 50;
         }
 
+        // Big penalties for overlap
         switch (theme.Video.Overlap)
         {
             case OverlapType.Over:
-                score += 10;
+                score += 20;
                 break;
             case OverlapType.Transition:
-                score += 5;
+                score += 15;
                 break;
         }
 
+        // Small penalties for source
         switch (theme.Video.Source)
         {
             case VideoSource.LD:
             case VideoSource.VHS:
-                score += 5;
+                score += 10;
                 break;
             case VideoSource.WEB:
             case VideoSource.RAW:
-                score += 2;
+                score += 5;
                 break;
+        }
+
+        // Medium penalty for credits
+        if (!theme.Video.Creditless)
+        {
+            score += 10;
         }
 
         return score;

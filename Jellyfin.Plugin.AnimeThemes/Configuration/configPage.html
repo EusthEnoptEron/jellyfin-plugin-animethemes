@@ -54,9 +54,9 @@
 
                     <div class="inputContainer">
                         <label class="inputLabel inputLabelUnfocused" for="AudioVolume">Volume</label>
-                        <input id="AudioVolume" name="AudioVolume" type="number" is="emby-input" min="0" max="1"
+                        <input id="AudioVolume" name="AudioVolume" type="range" is="emby-input" min="0" max="1"
                                step="0.05"/>
-                        <div class="fieldDescription">How to adjust the volume of the downloaded files.</div>
+                        <div class="fieldDescription">Volume of the downloaded files. Will be baked in.</div>
                     </div>
                 </div>
 
@@ -75,10 +75,9 @@
 
                     <div class="inputContainer">
                         <label class="inputLabel inputLabelUnfocused" for="VideoVolume">Volume</label>
-                        <input id="VideoVolume" name="VideoVolume" type="number" is="emby-input" min="0" max="1"
+                        <input id="VideoVolume" name="VideoVolume" type="range" is="emby-input" min="0" max="1"
                                step="0.05"/>
-                        <div class="fieldDescription">How to adjust the volume of the downloaded files. Set to 0 to
-                            mute.
+                        <div class="fieldDescription">Volume of the downloaded files. Set to 0 to mute. Will be baked in.
                         </div>
                     </div>
                 </div>
