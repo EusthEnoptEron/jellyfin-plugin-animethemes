@@ -46,9 +46,10 @@ public class AnimeThemesDownloader : IDisposable
     /// </summary>
     /// <param name="item">The DB item to process.</param>
     /// <param name="configuration">Configuration of the plugin.</param>
+    /// <param name="enforce">Enforce state.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task that runts until item is done processing.</returns>
-    public async ValueTask Process(BaseItem item, PluginConfiguration configuration, CancellationToken cancellationToken)
+    public async ValueTask HandleAsync(BaseItem item, PluginConfiguration configuration, bool enforce, CancellationToken cancellationToken)
     {
         // Get AniDB ID
         if (!TryGetAniDbId(item, configuration, out var id))

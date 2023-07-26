@@ -4,12 +4,12 @@ guid: "086022b5-29fb-4f89-a298-3d595492a5ed"
 version: "1.0.0.0"
 targetAbi: "10.8.0.0"
 framework: "net6.0"
-overview: "Experimental Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe"
+overview: "Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe"
 description: >
   Experimental Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe.
 
   **Since the AniDB ID is used to find the matching themes, you'll need to install the AniDB plugin.**
-category: "General"
+category: "Metadata"
 owner: "EusthEnoptEron"
 artifacts:
   - "Jellyfin.Plugin.AnimeThemes.dll"
