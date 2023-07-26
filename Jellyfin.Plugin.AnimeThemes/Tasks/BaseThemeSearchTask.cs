@@ -60,7 +60,7 @@ public abstract class BaseThemeSearchTask
             try
             {
                 counter++;
-                progress.Report(counter / (double)count * 100.0);
+                progress.Report(counter / (double)count * 100);
             }
             finally
             {

@@ -29,13 +29,13 @@ public class EnforcedThemeSearchTask : BaseThemeSearchTask, IScheduledTask
     }
 
     /// <inheritdoc />
-    public string Name { get; } = "Full Update of Anime Themes";
+    public string Name { get; } = "Redownload All Anime Themes";
 
     /// <inheritdoc />
     public string Key { get; } = "animethemes.fullupdate";
 
     /// <inheritdoc />
-    public string Description { get; } = "Updates all themes according to the settings. This will enforce these settings and delete files that shouldn't be there.";
+    public string Description { get; } = "Updates all themes according to the settings. This will enforce these settings and delete files that shouldn't be there. It's not recommended to schedule this task. The normal scan will run anyway at the end of every library scan.";
 
     /// <inheritdoc />
     public string Category { get; } = "Theme Songs";

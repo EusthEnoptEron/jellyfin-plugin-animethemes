@@ -13,6 +13,7 @@ using Jellyfin.Plugin.AnimeThemes.Models;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Entities;
+using MediaBrowser.Model.MediaInfo;
 using Microsoft.Extensions.Logging;
 using Video = Jellyfin.Plugin.AnimeThemes.Models.Video;
 
@@ -23,6 +24,10 @@ namespace Jellyfin.Plugin.AnimeThemes;
 /// </summary>
 public class AnimeThemesDownloader : IDisposable
 {
+    private const string ThemeMusicFileName = "theme.mp3";
+    private const string ThemeMusicDirectory = "theme-music";
+    private const string ThemeVideoDirectory = "backdrops";
+
     private readonly HttpClient _client;
     private readonly AnimeThemesApi _api;
     private readonly ILogger<AnimeThemesDownloader> _logger;
@@ -46,18 +51,25 @@ public class AnimeThemesDownloader : IDisposable
     /// </summary>
     /// <param name="item">The DB item to process.</param>
     /// <param name="configuration">Configuration of the plugin.</param>
-    /// <param name="enforce">Enforce state.</param>
+    /// <param name="redownload">Redownload all files.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task that runts until item is done processing.</returns>
-    public async ValueTask HandleAsync(BaseItem item, PluginConfiguration configuration, bool enforce, CancellationToken cancellationToken)
+    public async ValueTask HandleAsync(BaseItem item, PluginConfiguration configuration, bool redownload, CancellationToken cancellationToken)
     {
         // Get AniDB ID
         if (!TryGetAniDbId(item, configuration, out var id))
         {
+            _logger.LogDebug("[{Id}] Item could not be identified as anime", item.Id);
             return;
         }
 
-        _logger.LogInformation("[{Id}] Getting theme song for item", item.Id);
+        if (IsSatisfied(item, configuration) && !redownload)
+        {
+            _logger.LogDebug("[{Id}] Item is already in a good state.", item.Id);
+            return;
+        }
+
+        _logger.LogInformation("[{Id}] Getting theme songs for item", item.Id);
 
         // Get Anime
         var anime = await _api.FindByAniDbId(id, cancellationToken).ConfigureAwait(false);
@@ -66,7 +78,7 @@ public class AnimeThemesDownloader : IDisposable
             return;
         }
 
-        _logger.LogInformation("[{Id}] Attempting to get theme song for anime: {Name} (AniDB={AniId})", item.Id, item.Name, id);
+        _logger.LogInformation("[{Id}] Attempting to filter theme songs for: {Name} (AniDB={AniId})", item.Id, item.Name, id);
 
         // Get audio
         var themes = GetBestThemes(anime, configuration).DistinctBy(it => it.Theme.Id).ToArray();
@@ -74,32 +86,34 @@ public class AnimeThemesDownloader : IDisposable
         _logger.LogInformation("[{Id}] Found {Count} entries", item.Id, themes.Length);
 
         // Process videos
-        await ProcessMediaType(MediaType.Video, themes, item, configuration, cancellationToken).ConfigureAwait(false);
+        await ProcessMediaType(MediaType.Video, themes, item, configuration, redownload, cancellationToken).ConfigureAwait(false);
 
         // Process audios
-        await ProcessMediaType(MediaType.Audio, themes, item, configuration, cancellationToken).ConfigureAwait(false);
+        await ProcessMediaType(MediaType.Audio, themes, item, configuration, redownload, cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask ProcessMediaType(MediaType type, FlattenedTheme[] themes, BaseItem item, PluginConfiguration configuration, CancellationToken cancellationToken = default)
+    private async ValueTask ProcessMediaType(MediaType type, FlattenedTheme[] themes, BaseItem item, PluginConfiguration configuration, bool redownload = false, CancellationToken cancellationToken = default)
     {
         bool isAudio = type == MediaType.Audio;
+
+        if (redownload)
+        {
+            // Remove old files
+            if (isAudio)
+            {
+                RemoveFile(item, ThemeMusicFileName);
+                RemoveDirectory(item, ThemeMusicDirectory);
+            }
+            else
+            {
+                RemoveDirectory(item, ThemeVideoDirectory);
+            }
+        }
+
         var fetchType = isAudio ? configuration.AudioFetchType : configuration.VideoFetchType;
         var volume = isAudio ? configuration.AudioVolume : configuration.VideoVolume;
 
         if (fetchType == FetchType.Single)
-        {
-            // Download them all into "theme-music"
-            foreach (var theme in themes)
-            {
-                var link = isAudio ? theme.Audio.Link : theme.Video.Link;
-                var fileName = isAudio
-                    ? Path.Combine("theme-music", theme.Theme.Slug + ".mp3")
-                    : Path.Combine("backdrops", theme.Theme.Slug + ".webm");
-
-                await Download(type, link, item, fileName, volume, cancellationToken).ConfigureAwait(false);
-            }
-        }
-        else if (fetchType == FetchType.All)
         {
             // Pick best theme
             var bestTheme = themes.FirstOrDefault();
@@ -112,16 +126,47 @@ public class AnimeThemesDownloader : IDisposable
 
             // Download file
             var link = isAudio ? bestTheme.Audio.Link : bestTheme.Video.Link;
-            var fileName = isAudio ? "theme.mp3" : Path.Combine("backdrops", bestTheme.Theme.Slug + ".webm");
+            var fileName = isAudio ? ThemeMusicFileName : Path.Combine(ThemeVideoDirectory, bestTheme.Theme.Slug + ".webm");
             await Download(type, link, item, fileName, volume, cancellationToken).ConfigureAwait(false);
+        }
+        else if (fetchType == FetchType.All)
+        {
+            // Download them all into "theme-music"
+            foreach (var theme in themes)
+            {
+                var link = isAudio ? theme.Audio.Link : theme.Video.Link;
+                var fileName = isAudio
+                    ? Path.Combine(ThemeMusicDirectory, theme.Theme.Slug + ".mp3")
+                    : Path.Combine(ThemeVideoDirectory, theme.Theme.Slug + ".webm");
+
+                await Download(type, link, item, fileName, volume, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 
-    private async ValueTask Download(MediaType type, string url, BaseItem item, string filename = "theme.mp3", double volume = 1.0, CancellationToken cancellationToken = default)
+    private void RemoveFile(BaseItem series, string filename)
     {
+        var path = Path.Combine(series.Path, "theme.mp3");
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
+    }
+
+    private void RemoveDirectory(BaseItem series, string directory)
+    {
+        var path = Path.Combine(series.Path, directory);
+        if (Directory.Exists(path))
+        {
+            Directory.Delete(path, true);
+        }
+    }
+
+    private async ValueTask Download(MediaType type, string url, BaseItem item, string filename, double volume = 1.0, CancellationToken cancellationToken = default)
+    {
+        var tempFile = Path.GetTempFileName();
         try
         {
-            var tempFile = Path.GetTempFileName();
             var path = Path.Combine(item.Path, filename);
             // Make sure directory exists
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -178,27 +223,33 @@ public class AnimeThemesDownloader : IDisposable
             var memoryStream = new MemoryStream();
             await process.StandardOutput.BaseStream.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(false);
 
-            File.Delete(tempFile);
-
             _logger.LogInformation("[{Id}] Successfully downloaded theme song!", item.Id);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Download failed");
         }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
+
+    private bool IsSatisfied(BaseItem item, PluginConfiguration configuration)
+    {
+        var audioSatisfied = item.GetThemeSongs().Any() || configuration.AudioFetchType == FetchType.None;
+        var videoSatisfied = item.GetThemeVideos().Any() || configuration.VideoFetchType == FetchType.None;
+
+        return audioSatisfied && videoSatisfied;
     }
 
     private bool TryGetAniDbId(BaseItem item, PluginConfiguration configuration, out int id)
     {
         id = -1;
 
-        var audioSatisfied = item.GetThemeSongs().Any() || configuration.AudioFetchType == FetchType.None;
-        var videoSatisfied = item.GetThemeVideos().Any() || configuration.VideoFetchType == FetchType.None;
-
         // Ignore non-series and already processed ones.
-        if (item.GetBaseItemKind() != BaseItemKind.Series || (audioSatisfied && videoSatisfied))
+        if (item.GetBaseItemKind() != BaseItemKind.Series)
         {
-            _logger.LogInformation("[{Id}] Item was disqualified", item.Id);
             return false;
         }
 
