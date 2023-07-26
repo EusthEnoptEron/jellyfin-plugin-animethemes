@@ -1,12 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Data.Enums;
-using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.AnimeThemes;
+namespace Jellyfin.Plugin.AnimeThemes.Tasks;
 
 /// <summary>
 /// Task that updates theme songs when needed.

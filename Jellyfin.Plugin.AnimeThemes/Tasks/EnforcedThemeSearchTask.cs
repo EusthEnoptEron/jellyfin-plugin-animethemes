@@ -6,7 +6,7 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.AnimeThemes;
+namespace Jellyfin.Plugin.AnimeThemes.Tasks;
 
 /// <summary>
 /// Scheduled task for enforcing configuration.

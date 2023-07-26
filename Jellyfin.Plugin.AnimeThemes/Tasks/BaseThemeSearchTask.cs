@@ -7,7 +7,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.AnimeThemes;
+namespace Jellyfin.Plugin.AnimeThemes.Tasks;
 
 /// <summary>
 /// Base class for search tasks.
