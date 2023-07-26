@@ -17,6 +17,7 @@ public class PluginConfiguration : BasePluginConfiguration
         IgnoreOverlapping = true;
         IgnoreEDs = false;
         IgnoreOPs = false;
+        IgnoreThemesWithCredits = false;
         AudioVolume = 0.5;
         VideoVolume = 0.0;
         VideoFetchType = FetchType.None;
@@ -38,6 +39,11 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Gets or sets a value indicating whether to ignore OP themes.
     /// </summary>
     public bool IgnoreOPs { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to ignore themes with credits in them.
+    /// </summary>
+    public bool IgnoreThemesWithCredits { get; set; }
 
     /// <summary>
     /// Gets or sets an volume setting.

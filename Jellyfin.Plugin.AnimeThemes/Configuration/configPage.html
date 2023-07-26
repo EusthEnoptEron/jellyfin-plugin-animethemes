@@ -27,6 +27,12 @@
                     </div>
                     <div class="checkboxContainer checkboxContainer-withDescription">
                         <label class="emby-checkbox-label">
+                            <input id="IgnoreThemesWithCredits" name="IgnoreThemesWithCredits" type="checkbox" is="emby-checkbox"/>
+                            <span>Ignore themes that contain credits</span>
+                        </label>
+                    </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
                             <input id="IgnoreOPs" name="IgnoreOPs" type="checkbox" is="emby-checkbox"/>
                             <span>Ignore OP themes</span>
                         </label>
@@ -104,6 +110,7 @@
                     document.querySelector('#AudioVolume').value = config.AudioVolume;
                     document.querySelector('#VideoVolume').value = config.VideoVolume;
                     document.querySelector('#IgnoreOverlapping').checked = config.IgnoreOverlapping;
+                    document.querySelector('#IgnoreThemesWithCredits').checked = config.IgnoreThemesWithCredits;
                     document.querySelector('#IgnoreEDs').checked = config.IgnoreEDs;
                     document.querySelector('#IgnoreOPs').checked = config.IgnoreOPs;
                     document.querySelector('#AudioFetchType').value = config.AudioFetchType;
@@ -120,6 +127,7 @@
                     config.AudioVolume = document.querySelector('#AudioVolume').value;
                     config.VideoVolume = document.querySelector('#VideoVolume').value;
                     config.IgnoreOverlapping = document.querySelector('#IgnoreOverlapping').checked;
+                    config.IgnoreThemesWithCredits = document.querySelector('#IgnoreThemesWithCredits').checked;
                     config.IgnoreEDs = document.querySelector('#IgnoreEDs').checked;
                     config.IgnoreOPs = document.querySelector('#IgnoreOPs').checked;
                     config.AudioFetchType = document.querySelector('#AudioFetchType').value;
