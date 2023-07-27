@@ -79,27 +79,24 @@ public class AnimeThemesDownloader : IDisposable
 
         _logger.LogInformation("[{Id}] Attempting to filter theme songs for: {Name} (AniDB={AniId})", item.Id, item.Name, id);
 
-        // Get audio
-        var distinctThemes = GetBestThemes(anime, configuration).DistinctBy(it => it.Theme.Id).ToArray();
-
-        _logger.LogInformation("[{Id}] Found {Count} entries", item.Id, distinctThemes.Length);
-
         // Process videos
-        await ProcessMediaType(MediaType.Video, distinctThemes, item, configuration, cancellationToken).ConfigureAwait(false);
+        await ProcessMediaType(MediaType.Video, anime, item, configuration, cancellationToken).ConfigureAwait(false);
 
         // Process audios
-        await ProcessMediaType(MediaType.Audio, distinctThemes, item, configuration, cancellationToken).ConfigureAwait(false);
+        await ProcessMediaType(MediaType.Audio, anime, item, configuration, cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask ProcessMediaType(MediaType type, FlattenedTheme[] distinctThemes, BaseItem item, PluginConfiguration configuration, CancellationToken cancellationToken = default)
+    private async ValueTask ProcessMediaType(MediaType type, Anime anime, BaseItem item, PluginConfiguration configuration, CancellationToken cancellationToken = default)
     {
-        var fetchType = type == MediaType.Audio ? configuration.AudioFetchType : configuration.VideoFetchType;
+        var settings = type == MediaType.Audio ? configuration.AudioSettings : configuration.VideoSettings;
+
+        var distinctThemes = GetBestThemes(anime, settings).DistinctBy(it => it.Theme.Id);
 
         // Pick themes according to fetch type
-        var requiredThemes = PickThemes(fetchType, distinctThemes, configuration);
+        var requiredThemes = PickThemes(settings.FetchType, distinctThemes);
 
         // Turn them into downloadable links
-        var links = ExtractLinks(type, requiredThemes, configuration).ToArray();
+        var links = ExtractLinks(type, requiredThemes, settings).ToArray();
 
         // Before we start the download, make sure the folders are in a clean state.
         if (configuration.ForceSync)
@@ -113,14 +110,14 @@ public class AnimeThemesDownloader : IDisposable
             CleanDirectory(item, type, links.Select(it => Path.GetFileName(it.Filepath)));
         }
 
-        foreach (var (url, relativePath, volume) in links)
+        foreach (var (url, relativePath) in links)
         {
             // Download if needed
-            await Download(type, url, item, relativePath, volume, cancellationToken).ConfigureAwait(false);
+            await Download(type, url, item, relativePath, settings.Volume, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private IEnumerable<FlattenedTheme> PickThemes(FetchType fetchType, FlattenedTheme[] themes, PluginConfiguration configuration)
+    private IEnumerable<FlattenedTheme> PickThemes(FetchType fetchType, IEnumerable<FlattenedTheme> themes)
     {
         switch (fetchType)
         {
@@ -135,19 +132,18 @@ public class AnimeThemesDownloader : IDisposable
         }
     }
 
-    private IEnumerable<(string Url, string Filepath, double Volume)> ExtractLinks(MediaType type, IEnumerable<FlattenedTheme> themes, PluginConfiguration configuration)
+    private IEnumerable<(string Url, string Filepath)> ExtractLinks(MediaType type, IEnumerable<FlattenedTheme> themes, MediaTypeConfiguration settings)
     {
         bool isAudio = type == MediaType.Audio;
 
         foreach (var theme in themes)
         {
             var link = isAudio ? theme.Audio.Link : theme.Video.Link;
-            var volume = isAudio ? configuration.AudioVolume : configuration.VideoVolume;
             var path = isAudio
-                ? Path.Combine(ThemeMusicDirectory, $"{theme.Audio.Filename}__{volume * 100:0}.mp3")
-                : Path.Combine(ThemeVideoDirectory, $"{theme.Video.Filename}__{volume * 100:0}.webm");
+                ? Path.Combine(ThemeMusicDirectory, $"{theme.Audio.Filename}__{settings.Volume * 100:0}.mp3")
+                : Path.Combine(ThemeVideoDirectory, $"{theme.Video.Filename}__{settings.Volume * 100:0}.webm");
 
-            yield return (link, path, volume);
+            yield return (link, path);
         }
     }
 
@@ -265,8 +261,8 @@ public class AnimeThemesDownloader : IDisposable
 
     private bool IsSatisfied(BaseItem item, PluginConfiguration configuration)
     {
-        var audioSatisfied = item.GetThemeSongs().Any() || configuration.AudioFetchType == FetchType.None;
-        var videoSatisfied = item.GetThemeVideos().Any() || configuration.VideoFetchType == FetchType.None;
+        var audioSatisfied = item.GetThemeSongs().Any() || configuration.AudioSettings.FetchType == FetchType.None;
+        var videoSatisfied = item.GetThemeVideos().Any() || configuration.VideoSettings.FetchType == FetchType.None;
 
         return audioSatisfied && videoSatisfied;
     }
@@ -294,16 +290,16 @@ public class AnimeThemesDownloader : IDisposable
     /// Gets themes roughly sorted by relevance and filtered as needed.
     /// </summary>
     /// <param name="anime">The anime in question.</param>
-    /// <param name="configuration">The configuration that sets the rules.</param>
+    /// <param name="settings">The configuration that sets the rules.</param>
     /// <returns>A filtered and sorted and flattened enumerable of themes.</returns>
-    private IEnumerable<FlattenedTheme> GetBestThemes(Anime anime, PluginConfiguration configuration)
+    private IEnumerable<FlattenedTheme> GetBestThemes(Anime anime, MediaTypeConfiguration settings)
     {
         return anime.Themes.SelectMany(theme => theme.Entries.SelectMany(entry => entry.Videos.Select(video => Wrap(theme, entry, video))))
             .OrderBy(Rate)
-            .Where(it => !configuration.IgnoreOverlapping || it.Video.Overlap == OverlapType.None)
-            .Where(it => !configuration.IgnoreThemesWithCredits || it.Video.Creditless)
-            .Where(it => !configuration.IgnoreEDs || it.Theme.Type != ThemeType.ED)
-            .Where(it => !configuration.IgnoreOPs || it.Theme.Type != ThemeType.OP);
+            .Where(it => !settings.IgnoreOverlapping || it.Video.Overlap == OverlapType.None)
+            .Where(it => !settings.IgnoreThemesWithCredits || it.Video.Creditless)
+            .Where(it => !settings.IgnoreEDs || it.Theme.Type != ThemeType.ED)
+            .Where(it => !settings.IgnoreOPs || it.Theme.Type != ThemeType.OP);
     }
 
     private FlattenedTheme Wrap(AnimeTheme theme, AnimeThemeEntry entry, Video video)

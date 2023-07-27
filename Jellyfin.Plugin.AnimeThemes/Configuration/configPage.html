@@ -29,31 +29,6 @@
                             accordingly.
                         </div>
                     </div>
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="IgnoreOverlapping" name="IgnoreOverlapping" type="checkbox" is="emby-checkbox"/>
-                            <span>Ignore themes that overlap with episode</span>
-                        </label>
-                    </div>
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="IgnoreThemesWithCredits" name="IgnoreThemesWithCredits" type="checkbox"
-                                   is="emby-checkbox"/>
-                            <span>Ignore themes that contain credits</span>
-                        </label>
-                    </div>
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="IgnoreOPs" name="IgnoreOPs" type="checkbox" is="emby-checkbox"/>
-                            <span>Ignore OP themes</span>
-                        </label>
-                    </div>
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="IgnoreEDs" name="IgnoreEDs" type="checkbox" is="emby-checkbox"/>
-                            <span>Ignore ED themes</span>
-                        </label>
-                    </div>
                 </div>
 
                 <div class="verticalSection">
@@ -67,6 +42,33 @@
                             <option value="Single">Single theme</option>
                             <option value="All">All themes</option>
                         </select>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="AudioIgnoreOverlapping" name="AudioIgnoreOverlapping" type="checkbox"
+                                   is="emby-checkbox"/>
+                            <span>Ignore themes that overlap with episode</span>
+                        </label>
+                    </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="AudioIgnoreThemesWithCredits" name="AudioIgnoreThemesWithCredits" type="checkbox"
+                                   is="emby-checkbox"/>
+                            <span>Ignore themes that contain credits</span>
+                        </label>
+                    </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="AudioIgnoreOPs" name="AudioIgnoreOPs" type="checkbox" is="emby-checkbox"/>
+                            <span>Ignore OP themes</span>
+                        </label>
+                    </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="AudioIgnoreEDs" name="AudioIgnoreEDs" type="checkbox" is="emby-checkbox"/>
+                            <span>Ignore ED themes</span>
+                        </label>
                     </div>
 
                     <div class="inputContainer">
@@ -88,6 +90,33 @@
                             <option value="Single">Single theme</option>
                             <option value="All">All themes</option>
                         </select>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="VideoIgnoreOverlapping" name="VideoIgnoreOverlapping" type="checkbox"
+                                   is="emby-checkbox"/>
+                            <span>Ignore themes that overlap with episode</span>
+                        </label>
+                    </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="VideoIgnoreThemesWithCredits" name="VideoIgnoreThemesWithCredits" type="checkbox"
+                                   is="emby-checkbox"/>
+                            <span>Ignore themes that contain credits</span>
+                        </label>
+                    </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="VideoIgnoreOPs" name="VideoIgnoreOPs" type="checkbox" is="emby-checkbox"/>
+                            <span>Ignore OP themes</span>
+                        </label>
+                    </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="VideoIgnoreEDs" name="VideoIgnoreEDs" type="checkbox" is="emby-checkbox"/>
+                            <span>Ignore ED themes</span>
+                        </label>
                     </div>
 
                     <div class="inputContainer">
@@ -119,15 +148,22 @@
 
                 ApiClient.getPluginConfiguration(AnimeThemesConfig.pluginUniqueId).then(function (config) {
                     document.querySelector('#DegreeOfParallelism').value = config.DegreeOfParallelism;
-                    document.querySelector('#AudioVolume').value = config.AudioVolume;
-                    document.querySelector('#VideoVolume').value = config.VideoVolume;
-                    document.querySelector('#IgnoreOverlapping').checked = config.IgnoreOverlapping;
-                    document.querySelector('#IgnoreThemesWithCredits').checked = config.IgnoreThemesWithCredits;
-                    document.querySelector('#IgnoreEDs').checked = config.IgnoreEDs;
-                    document.querySelector('#IgnoreOPs').checked = config.IgnoreOPs;
                     document.querySelector('#ForceSync').checked = config.ForceSync;
-                    document.querySelector('#AudioFetchType').value = config.AudioFetchType;
-                    document.querySelector('#VideoFetchType').value = config.VideoFetchType;
+
+                    document.querySelector('#AudioFetchType').value = config.AudioSettings.FetchType;
+                    document.querySelector('#AudioIgnoreOverlapping').checked = config.AudioSettings.IgnoreOverlapping;
+                    document.querySelector('#AudioIgnoreThemesWithCredits').checked = config.AudioSettings.IgnoreThemesWithCredits;
+                    document.querySelector('#AudioIgnoreEDs').checked = config.AudioSettings.IgnoreEDs;
+                    document.querySelector('#AudioIgnoreOPs').checked = config.AudioSettings.IgnoreOPs;
+                    document.querySelector('#AudioVolume').value = config.AudioSettings.Volume;
+
+                    document.querySelector('#VideoFetchType').value = config.VideoSettings.FetchType;
+                    document.querySelector('#VideoIgnoreOverlapping').checked = config.VideoSettings.IgnoreOverlapping;
+                    document.querySelector('#VideoIgnoreThemesWithCredits').checked = config.VideoSettings.IgnoreThemesWithCredits;
+                    document.querySelector('#VideoIgnoreEDs').checked = config.VideoSettings.IgnoreEDs;
+                    document.querySelector('#VideoIgnoreOPs').checked = config.VideoSettings.IgnoreOPs;
+                    document.querySelector('#VideoVolume').value = config.VideoSettings.Volume;
+
                     Dashboard.hideLoadingMsg();
                 });
             });
@@ -137,15 +173,22 @@
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(AnimeThemesConfig.pluginUniqueId).then(function (config) {
                     config.DegreeOfParallelism = document.querySelector('#DegreeOfParallelism').value;
-                    config.AudioVolume = document.querySelector('#AudioVolume').value;
-                    config.VideoVolume = document.querySelector('#VideoVolume').value;
-                    config.IgnoreOverlapping = document.querySelector('#IgnoreOverlapping').checked;
-                    config.IgnoreThemesWithCredits = document.querySelector('#IgnoreThemesWithCredits').checked;
-                    config.IgnoreEDs = document.querySelector('#IgnoreEDs').checked;
-                    config.IgnoreOPs = document.querySelector('#IgnoreOPs').checked;
                     config.ForceSync = document.querySelector('#ForceSync').checked;
-                    config.AudioFetchType = document.querySelector('#AudioFetchType').value;
-                    config.VideoFetchType = document.querySelector('#VideoFetchType').value;
+
+                    config.AudioSettings.FetchType = document.querySelector('#AudioFetchType').value;
+                    config.AudioSettings.IgnoreOverlapping = document.querySelector('#AudioIgnoreOverlapping').checked;
+                    config.AudioSettings.IgnoreThemesWithCredits = document.querySelector('#AudioIgnoreThemesWithCredits').checked;
+                    config.AudioSettings.IgnoreEDs = document.querySelector('#AudioIgnoreEDs').checked;
+                    config.AudioSettings.IgnoreOPs = document.querySelector('#AudioIgnoreOPs').checked;
+                    config.AudioSettings.Volume = document.querySelector('#AudioVolume').value;
+
+                    config.VideoSettings.FetchType = document.querySelector('#VideoFetchType').value;
+                    config.VideoSettings.IgnoreOverlapping = document.querySelector('#VideoIgnoreOverlapping').checked;
+                    config.VideoSettings.IgnoreThemesWithCredits = document.querySelector('#VideoIgnoreThemesWithCredits').checked;
+                    config.VideoSettings.IgnoreEDs = document.querySelector('#VideoIgnoreEDs').checked;
+                    config.VideoSettings.IgnoreOPs = document.querySelector('#VideoIgnoreOPs').checked;
+                    config.VideoSettings.Volume = document.querySelector('#VideoVolume').value;
+
                     ApiClient.updatePluginConfiguration(AnimeThemesConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });

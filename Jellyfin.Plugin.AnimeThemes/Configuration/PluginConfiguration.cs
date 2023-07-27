@@ -14,17 +14,81 @@ public class PluginConfiguration : BasePluginConfiguration
     public PluginConfiguration()
     {
         // set default options here
-        IgnoreOverlapping = true;
-        IgnoreEDs = false;
-        IgnoreOPs = false;
-        IgnoreThemesWithCredits = false;
-        AudioVolume = 0.5;
-        VideoVolume = 0.0;
-        VideoFetchType = FetchType.None;
-        AudioFetchType = FetchType.Single;
         DegreeOfParallelism = 1;
         ForceSync = false;
+
+        AudioSettings = new MediaTypeConfiguration()
+        {
+            FetchType = FetchType.Single,
+            IgnoreOverlapping = true,
+            IgnoreThemesWithCredits = false,
+            IgnoreOPs = false,
+            IgnoreEDs = false,
+            Volume = 0.5,
+        };
+
+        VideoSettings = new MediaTypeConfiguration()
+        {
+            FetchType = FetchType.None,
+            IgnoreOverlapping = true,
+            IgnoreThemesWithCredits = true,
+            IgnoreOPs = false,
+            IgnoreEDs = false,
+            Volume = 0.0,
+        };
     }
+
+    /// <summary>
+    /// Gets or sets a string setting.
+    /// </summary>
+    public int DegreeOfParallelism { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the sync should enforce conformity.
+    /// </summary>
+    public bool ForceSync { get; set; }
+
+    /// <summary>
+    /// Gets or sets the audio settings.
+    /// </summary>
+    public MediaTypeConfiguration AudioSettings { get; set; }
+
+    /// <summary>
+    /// Gets or sets the video settings.
+    /// </summary>
+    public MediaTypeConfiguration VideoSettings { get; set; }
+}
+
+/// <summary>
+/// Enum describing how files should be fetched.
+/// </summary>
+public enum FetchType
+{
+    /// <summary>
+    /// Download nothing.
+    /// </summary>
+    None,
+
+    /// <summary>
+    /// Download only one file.
+    /// </summary>
+    Single,
+
+    /// <summary>
+    /// Download all files.
+    /// </summary>
+    All
+}
+
+/// <summary>
+/// Configuration for a specific media type.
+/// </summary>
+public class MediaTypeConfiguration
+{
+    /// <summary>
+    /// Gets or sets how to fetch files.
+    /// </summary>
+    public FetchType FetchType { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether some true or false setting is enabled..
@@ -47,53 +111,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool IgnoreThemesWithCredits { get; set; }
 
     /// <summary>
-    /// Gets or sets an volume setting.
+    /// Gets or sets the volume setting.
     /// </summary>
-    public double AudioVolume { get; set; }
-
-    /// <summary>
-    /// Gets or sets an volume setting.
-    /// </summary>
-    public double VideoVolume { get; set; }
-
-    /// <summary>
-    /// Gets or sets a string setting.
-    /// </summary>
-    public int DegreeOfParallelism { get; set; }
-
-    /// <summary>
-    /// Gets or sets how to fetch videos.
-    /// </summary>
-    public FetchType VideoFetchType { get; set; }
-
-    /// <summary>
-    /// Gets or sets how to fetch audio files.
-    /// </summary>
-    public FetchType AudioFetchType { get; set; }
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the sync should enforce conformity.
-    /// </summary>
-    public bool ForceSync { get; set; }
-}
-
-/// <summary>
-/// Enum describing how files should be fetched.
-/// </summary>
-public enum FetchType
-{
-    /// <summary>
-    /// Download nothing.
-    /// </summary>
-    None,
-
-    /// <summary>
-    /// Download only one file.
-    /// </summary>
-    Single,
-
-    /// <summary>
-    /// Download all files.
-    /// </summary>
-    All
+    public double Volume { get; set; }
 }
