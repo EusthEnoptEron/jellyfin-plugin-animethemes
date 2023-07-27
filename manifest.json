@@ -1,0 +1,20 @@
+[
+    {
+        "category": "Metadata",
+        "description": "Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe.\n**Since the AniDB ID is used to find the matching themes, you'll need to install the AniDB plugin.**\n",
+        "guid": "086022b5-29fb-4f89-a298-3d595492a5ed",
+        "name": "AnimeThemes",
+        "overview": "Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe",
+        "owner": "EusthEnoptEron",
+        "versions": [
+            {
+                "checksum": "c0904621613a5631a75b62a27034ee0f",
+                "changelog": "Initial release attempt.",
+                "targetAbi": "10.8.4.0",
+                "sourceUrl": "https://github.com/EusthEnoptEron/jellyfin-plugin-animethemes/releases/download/1.0.0-rc.1/animethemes_1.0.0.0.zip",
+                "timestamp": "2023-07-27T22:12:07Z",
+                "version": "1.0.0.0"
+            }
+        ]
+    }
+]

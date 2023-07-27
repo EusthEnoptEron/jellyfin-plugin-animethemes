@@ -6,7 +6,7 @@ targetAbi: "10.8.4.0"
 framework: "net6.0"
 overview: "Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe"
 description: >
-  Experimental Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe.
+  Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe.
 
   **Since the AniDB ID is used to find the matching themes, you'll need to install the AniDB plugin.**
 category: "Metadata"
