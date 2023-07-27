@@ -51,10 +51,9 @@ public class AnimeThemesDownloader : IDisposable
     /// </summary>
     /// <param name="item">The DB item to process.</param>
     /// <param name="configuration">Configuration of the plugin.</param>
-    /// <param name="redownload">Redownload all files.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task that runts until item is done processing.</returns>
-    public async ValueTask HandleAsync(BaseItem item, PluginConfiguration configuration, bool redownload, CancellationToken cancellationToken)
+    public async ValueTask HandleAsync(BaseItem item, PluginConfiguration configuration, CancellationToken cancellationToken)
     {
         // Get AniDB ID
         if (!TryGetAniDbId(item, configuration, out var id))
@@ -63,15 +62,15 @@ public class AnimeThemesDownloader : IDisposable
             return;
         }
 
-        if (IsSatisfied(item, configuration) && !redownload)
+        if (IsSatisfied(item, configuration) && !configuration.ForceSync)
         {
-            _logger.LogDebug("[{Id}] Item is already in a good state.", item.Id);
+            _logger.LogDebug("[{Id}] Item is already in a good state", item.Id);
             return;
         }
 
         _logger.LogInformation("[{Id}] Getting theme songs for item", item.Id);
 
-        // Get Anime
+        // Get Anime with all its themes
         var anime = await _api.FindByAniDbId(id, cancellationToken).ConfigureAwait(false);
         if (anime == null || !anime.Resources.Any(resource => resource.Site == Sites.ANIDB && resource.ExternalId == id))
         {
@@ -81,93 +80,122 @@ public class AnimeThemesDownloader : IDisposable
         _logger.LogInformation("[{Id}] Attempting to filter theme songs for: {Name} (AniDB={AniId})", item.Id, item.Name, id);
 
         // Get audio
-        var themes = GetBestThemes(anime, configuration).DistinctBy(it => it.Theme.Id).ToArray();
+        var distinctThemes = GetBestThemes(anime, configuration).DistinctBy(it => it.Theme.Id).ToArray();
 
-        _logger.LogInformation("[{Id}] Found {Count} entries", item.Id, themes.Length);
+        _logger.LogInformation("[{Id}] Found {Count} entries", item.Id, distinctThemes.Length);
 
         // Process videos
-        await ProcessMediaType(MediaType.Video, themes, item, configuration, redownload, cancellationToken).ConfigureAwait(false);
+        await ProcessMediaType(MediaType.Video, distinctThemes, item, configuration, cancellationToken).ConfigureAwait(false);
 
         // Process audios
-        await ProcessMediaType(MediaType.Audio, themes, item, configuration, redownload, cancellationToken).ConfigureAwait(false);
+        await ProcessMediaType(MediaType.Audio, distinctThemes, item, configuration, cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask ProcessMediaType(MediaType type, FlattenedTheme[] themes, BaseItem item, PluginConfiguration configuration, bool redownload = false, CancellationToken cancellationToken = default)
+    private async ValueTask ProcessMediaType(MediaType type, FlattenedTheme[] distinctThemes, BaseItem item, PluginConfiguration configuration, CancellationToken cancellationToken = default)
+    {
+        var fetchType = type == MediaType.Audio ? configuration.AudioFetchType : configuration.VideoFetchType;
+
+        // Pick themes according to fetch type
+        var requiredThemes = PickThemes(fetchType, distinctThemes, configuration);
+
+        // Turn them into downloadable links
+        var links = ExtractLinks(type, requiredThemes, configuration).ToArray();
+
+        // Before we start the download, make sure the folders are in a clean state.
+        if (configuration.ForceSync)
+        {
+            if (type == MediaType.Audio)
+            {
+                // We don't need this file because we're using the directory variant.
+                RemoveFile(item, ThemeMusicFileName);
+            }
+
+            CleanDirectory(item, type, links.Select(it => Path.GetFileName(it.Filepath)));
+        }
+
+        foreach (var (url, relativePath, volume) in links)
+        {
+            // Download if needed
+            await Download(type, url, item, relativePath, volume, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private IEnumerable<FlattenedTheme> PickThemes(FetchType fetchType, FlattenedTheme[] themes, PluginConfiguration configuration)
+    {
+        switch (fetchType)
+        {
+            case FetchType.None:
+                return Enumerable.Empty<FlattenedTheme>();
+            case FetchType.Single:
+                return themes.Take(1);
+            case FetchType.All:
+                return themes;
+            default:
+                throw new ArgumentOutOfRangeException($"Unknown fetch type: {fetchType}");
+        }
+    }
+
+    private IEnumerable<(string Url, string Filepath, double Volume)> ExtractLinks(MediaType type, IEnumerable<FlattenedTheme> themes, PluginConfiguration configuration)
     {
         bool isAudio = type == MediaType.Audio;
 
-        if (redownload)
+        foreach (var theme in themes)
         {
-            // Remove old files
-            if (isAudio)
-            {
-                RemoveFile(item, ThemeMusicFileName);
-                RemoveDirectory(item, ThemeMusicDirectory);
-            }
-            else
-            {
-                RemoveDirectory(item, ThemeVideoDirectory);
-            }
-        }
+            var link = isAudio ? theme.Audio.Link : theme.Video.Link;
+            var volume = isAudio ? configuration.AudioVolume : configuration.VideoVolume;
+            var path = isAudio
+                ? Path.Combine(ThemeMusicDirectory, $"{theme.Audio.Filename}__{volume * 100:0}.mp3")
+                : Path.Combine(ThemeVideoDirectory, $"{theme.Video.Filename}__{volume * 100:0}.webm");
 
-        var fetchType = isAudio ? configuration.AudioFetchType : configuration.VideoFetchType;
-        var volume = isAudio ? configuration.AudioVolume : configuration.VideoVolume;
-
-        if (fetchType == FetchType.Single)
-        {
-            // Pick best theme
-            var bestTheme = themes.FirstOrDefault();
-            if (bestTheme == null)
-            {
-                return;
-            }
-
-            _logger.LogInformation("[{Id}] Best theme = {Theme}", item.Id, bestTheme);
-
-            // Download file
-            var link = isAudio ? bestTheme.Audio.Link : bestTheme.Video.Link;
-            var fileName = isAudio ? ThemeMusicFileName : Path.Combine(ThemeVideoDirectory, bestTheme.Theme.Slug + ".webm");
-            await Download(type, link, item, fileName, volume, cancellationToken).ConfigureAwait(false);
-        }
-        else if (fetchType == FetchType.All)
-        {
-            // Download them all into "theme-music"
-            foreach (var theme in themes)
-            {
-                var link = isAudio ? theme.Audio.Link : theme.Video.Link;
-                var fileName = isAudio
-                    ? Path.Combine(ThemeMusicDirectory, theme.Theme.Slug + ".mp3")
-                    : Path.Combine(ThemeVideoDirectory, theme.Theme.Slug + ".webm");
-
-                await Download(type, link, item, fileName, volume, cancellationToken).ConfigureAwait(false);
-            }
+            yield return (link, path, volume);
         }
     }
 
     private void RemoveFile(BaseItem series, string filename)
     {
-        var path = Path.Combine(series.Path, "theme.mp3");
+        var path = Path.Combine(series.Path, filename);
         if (File.Exists(path))
         {
             File.Delete(path);
         }
     }
 
-    private void RemoveDirectory(BaseItem series, string directory)
+    private void CleanDirectory(BaseItem series, MediaType mediaType, IEnumerable<string> allowedNames)
     {
+        var directory = mediaType == MediaType.Audio ? ThemeMusicDirectory : ThemeVideoDirectory;
+        var searchPattern = mediaType == MediaType.Audio ? "*.mp3" : "*.webm";
+
         var path = Path.Combine(series.Path, directory);
-        if (Directory.Exists(path))
+        if (!Directory.Exists(path))
         {
-            Directory.Delete(path, true);
+            return;
+        }
+
+        var allowedNamesSet = allowedNames.ToHashSet();
+
+        foreach (var filepath in Directory.GetFiles(path, searchPattern))
+        {
+            var name = Path.GetFileName(filepath);
+            if (!allowedNamesSet.Contains(name))
+            {
+                _logger.LogInformation("[{Id}] Removing obsolete theme: {Theme}", series.Id, filepath);
+                File.Delete(filepath);
+            }
         }
     }
 
-    private async ValueTask Download(MediaType type, string url, BaseItem item, string filename, double volume = 1.0, CancellationToken cancellationToken = default)
+    private async ValueTask Download(MediaType type, string url, BaseItem item, string relativePath, double volume = 1.0, CancellationToken cancellationToken = default)
     {
+        var path = Path.Combine(item.Path, relativePath);
+        if (File.Exists(path))
+        {
+            // Nothing to do
+            return;
+        }
+
         var tempFile = Path.GetTempFileName();
         try
         {
-            var path = Path.Combine(item.Path, filename);
             // Make sure directory exists
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             {

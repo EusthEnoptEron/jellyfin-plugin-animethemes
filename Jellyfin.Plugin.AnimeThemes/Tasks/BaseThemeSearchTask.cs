@@ -69,5 +69,7 @@ public abstract class BaseThemeSearchTask
         }).ConfigureAwait(false);
 
         _logger.LogInformation("Ending theme search ({Count})", count);
+
+        _manager.QueueLibraryScan();
     }
 }

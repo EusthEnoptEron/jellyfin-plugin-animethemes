@@ -7,10 +7,7 @@ from [animethemes.moe](https://animethemes.moe). This supports both audio-only, 
 
 ## How to use
 
-Currently the scan runs as a `ILibraryPostScanTask`, meaning it will run after a full scan of your library. So:
-
-1. Run a full scan of your library.
-2. Refresh metadata to find the new themes.
+The plugin creates a new scheduled task that you can configure. By default, it will run every 6 hours.
 
 Also make sure to enable theme music / videos in the display settings.
 

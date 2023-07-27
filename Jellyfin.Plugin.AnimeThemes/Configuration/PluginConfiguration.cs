@@ -23,6 +23,7 @@ public class PluginConfiguration : BasePluginConfiguration
         VideoFetchType = FetchType.None;
         AudioFetchType = FetchType.Single;
         DegreeOfParallelism = 1;
+        ForceSync = false;
     }
 
     /// <summary>
@@ -69,6 +70,11 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Gets or sets how to fetch audio files.
     /// </summary>
     public FetchType AudioFetchType { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the sync should enforce conformity.
+    /// </summary>
+    public bool ForceSync { get; set; }
 }
 
 /// <summary>

@@ -21,13 +21,24 @@
                     </div>
                     <div class="checkboxContainer checkboxContainer-withDescription">
                         <label class="emby-checkbox-label">
+                            <input id="ForceSync" name="ForceSync" type="checkbox" is="emby-checkbox"/>
+                            <span>Enforce conformity with the configuration.</span>
+                        </label>
+                        <div class="fieldDescription">When this is enabled, every run will check every anime if the
+                            downloaded themes still conform to the configuration, and download / delete themes
+                            accordingly.
+                        </div>
+                    </div>
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
                             <input id="IgnoreOverlapping" name="IgnoreOverlapping" type="checkbox" is="emby-checkbox"/>
                             <span>Ignore themes that overlap with episode</span>
                         </label>
                     </div>
                     <div class="checkboxContainer checkboxContainer-withDescription">
                         <label class="emby-checkbox-label">
-                            <input id="IgnoreThemesWithCredits" name="IgnoreThemesWithCredits" type="checkbox" is="emby-checkbox"/>
+                            <input id="IgnoreThemesWithCredits" name="IgnoreThemesWithCredits" type="checkbox"
+                                   is="emby-checkbox"/>
                             <span>Ignore themes that contain credits</span>
                         </label>
                     </div>
@@ -83,7 +94,8 @@
                         <label class="inputLabel inputLabelUnfocused" for="VideoVolume">Volume</label>
                         <input id="VideoVolume" name="VideoVolume" type="range" is="emby-input" min="0" max="1"
                                step="0.05"/>
-                        <div class="fieldDescription">Volume of the downloaded files. Set to 0 to mute. Will be baked in.
+                        <div class="fieldDescription">Volume of the downloaded files. Set to 0 to mute. Will be baked
+                            in.
                         </div>
                     </div>
                 </div>
@@ -113,6 +125,7 @@
                     document.querySelector('#IgnoreThemesWithCredits').checked = config.IgnoreThemesWithCredits;
                     document.querySelector('#IgnoreEDs').checked = config.IgnoreEDs;
                     document.querySelector('#IgnoreOPs').checked = config.IgnoreOPs;
+                    document.querySelector('#ForceSync').checked = config.ForceSync;
                     document.querySelector('#AudioFetchType').value = config.AudioFetchType;
                     document.querySelector('#VideoFetchType').value = config.VideoFetchType;
                     Dashboard.hideLoadingMsg();
@@ -130,6 +143,7 @@
                     config.IgnoreThemesWithCredits = document.querySelector('#IgnoreThemesWithCredits').checked;
                     config.IgnoreEDs = document.querySelector('#IgnoreEDs').checked;
                     config.IgnoreOPs = document.querySelector('#IgnoreOPs').checked;
+                    config.ForceSync = document.querySelector('#ForceSync').checked;
                     config.AudioFetchType = document.querySelector('#AudioFetchType').value;
                     config.VideoFetchType = document.querySelector('#VideoFetchType').value;
                     ApiClient.updatePluginConfiguration(AnimeThemesConfig.pluginUniqueId, config).then(function (result) {
