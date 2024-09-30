@@ -378,7 +378,7 @@ public class AnimeThemesDownloader : IDisposable
     }
 }
 
-internal record FlattenedTheme(AnimeTheme Theme, AnimeThemeEntry Entry, Video Video, Audio Audio);
+internal sealed record FlattenedTheme(AnimeTheme Theme, AnimeThemeEntry Entry, Video Video, Audio Audio);
 
 internal enum MediaType
 {

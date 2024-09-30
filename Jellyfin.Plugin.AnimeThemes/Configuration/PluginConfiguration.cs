@@ -1,4 +1,3 @@
-using MediaBrowser.Controller.Entities;
 using MediaBrowser.Model.Plugins;
 
 namespace Jellyfin.Plugin.AnimeThemes.Configuration;
