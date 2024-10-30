@@ -20,9 +20,10 @@ public class ScheduledThemeSearchTask : BaseThemeSearchTask, IScheduledTask
     /// Initializes a new instance of the <see cref="ScheduledThemeSearchTask"/> class.
     /// </summary>
     /// <param name="downloader">Downloader.</param>
-    /// <param name="manager">Manager.</param>
+    /// <param name="libraryManager">Library Manager.</param>
+    /// <param name="userManager">User Manager.</param>
     /// <param name="logger">Logger.</param>
-    public ScheduledThemeSearchTask(AnimeThemesDownloader downloader, ILibraryManager manager, ILogger<ScheduledThemeSearchTask> logger) : base(manager, logger)
+    public ScheduledThemeSearchTask(AnimeThemesDownloader downloader, ILibraryManager libraryManager, IUserManager userManager, ILogger<ScheduledThemeSearchTask> logger) : base(libraryManager, userManager, logger)
     {
         _logger = logger;
         _downloader = downloader;

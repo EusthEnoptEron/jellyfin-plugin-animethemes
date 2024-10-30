@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Data.Enums;
@@ -15,16 +16,17 @@ namespace Jellyfin.Plugin.AnimeThemes.Tasks;
 public abstract class BaseThemeSearchTask
 {
     private readonly ILogger _logger;
-    private readonly ILibraryManager _manager;
+    private readonly ILibraryManager _libraryManager;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BaseThemeSearchTask"/> class.
     /// </summary>
-    /// <param name="manager">Library manager.</param>
+    /// <param name="libraryManager">Library manager.</param>
+    /// <param name="userManager">Use manager.</param>
     /// <param name="logger">Logger.</param>
-    protected BaseThemeSearchTask(ILibraryManager manager, ILogger logger)
+    protected BaseThemeSearchTask(ILibraryManager libraryManager, IUserManager userManager, ILogger logger)
     {
-        _manager = manager;
+        _libraryManager = libraryManager;
         _logger = logger;
     }
 
@@ -41,7 +43,7 @@ public abstract class BaseThemeSearchTask
         var configuration = Plugin.Instance!.Configuration;
 
         // @formatter:off
-        var items = _manager.GetItemList(new InternalItemsQuery
+        var items = _libraryManager.GetItemList(new InternalItemsQuery
         {
             IncludeItemTypes = new[] { BaseItemKind.Series },
             IsVirtualItem = false,
@@ -70,6 +72,6 @@ public abstract class BaseThemeSearchTask
 
         _logger.LogInformation("Ending theme search ({Count})", count);
 
-        _manager.QueueLibraryScan();
+        _libraryManager.QueueLibraryScan();
     }
 }
