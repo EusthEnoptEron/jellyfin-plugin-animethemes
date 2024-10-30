@@ -27,7 +27,7 @@
                 "checksum": "c95dfe2c2a6befff20d2c7c9eb6a2f9c",
                 "changelog": "Release attempt for latest Jellyfin version.",
                 "targetAbi": "10.10.0.0",
-                "sourceUrl": "https://github.com/EusthEnoptEron/jellyfin-plugin-animethemes/releases/download/1.1.0/animethemes_1.1.1.0.zip",
+                "sourceUrl": "https://github.com/EusthEnoptEron/jellyfin-plugin-animethemes/releases/download/1.1.1/animethemes_1.1.1.0.zip",
                 "timestamp": "2024-10-30T20:00:00Z",
                 "version": "1.1.1.0"
             }
