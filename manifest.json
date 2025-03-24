@@ -30,6 +30,14 @@
                 "sourceUrl": "https://github.com/EusthEnoptEron/jellyfin-plugin-animethemes/releases/download/1.1.1/animethemes_1.1.1.0.zip",
                 "timestamp": "2024-10-30T20:00:00Z",
                 "version": "1.1.1.0"
+            },
+            {
+                "checksum": "91d5f93e8f3c3b653dd92199856ea777",
+                "changelog": "- Added movies to filter\n- Added black/whitelisting",
+                "targetAbi": "10.10.0.0",
+                "sourceUrl": "https://github.com/EusthEnoptEron/jellyfin-plugin-animethemes/releases/download/1.2.0/animethemes_1.2.0.0.zip",
+                "timestamp": "2025-03-24T17:00:00Z",
+                "version": "1.2.0.0"
             }
         ]
     }
