@@ -1,11 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.AnimeThemes.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Model.Querying;
 using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.AnimeThemes.Tasks;
@@ -41,13 +44,20 @@ public abstract class BaseThemeSearchTask
     {
         _logger.LogInformation("Starting theme search");
         var configuration = Plugin.Instance!.Configuration;
+        var applicable = GetApplicableItems(configuration);
+        if (applicable.Length == 0)
+        {
+            _logger.LogInformation("No applicable items found -- aborting");
+            return;
+        }
 
         // @formatter:off
         var items = _libraryManager.GetItemList(new InternalItemsQuery
         {
-            IncludeItemTypes = new[] { BaseItemKind.Series },
+            IncludeItemTypes = new[] { BaseItemKind.Series, BaseItemKind.Movie },
             IsVirtualItem = false,
             Recursive = true,
+            AncestorIds = applicable,
         });
         // @formatter:on
 
@@ -73,5 +83,36 @@ public abstract class BaseThemeSearchTask
         _logger.LogInformation("Ending theme search ({Count})", count);
 
         _libraryManager.QueueLibraryScan();
+    }
+
+    private Guid[] GetApplicableItems(PluginConfiguration configuration)
+    {
+        var includeRegex = !string.IsNullOrWhiteSpace(configuration.IncludeLibraries)
+            ? new Regex(configuration.IncludeLibraries, RegexOptions.IgnoreCase | RegexOptions.Compiled)
+            : new Regex("^.*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        var excludeRegex = !string.IsNullOrWhiteSpace(configuration.ExcludeLibraries)
+            ? new Regex(configuration.ExcludeLibraries, RegexOptions.IgnoreCase | RegexOptions.Compiled)
+            : null;
+
+        var libraries = _libraryManager.GetItemList(new InternalItemsQuery { IncludeItemTypes = new[] { BaseItemKind.CollectionFolder } });
+
+        _logger.LogInformation("Considering the following libraries: {Libraries}", libraries.Select(it => it.Name));
+
+        var matches = libraries.Where(item => includeRegex.IsMatch(item.Name)).ToList();
+
+        _logger.LogInformation("Matching libraries (Included): {Libraries}", matches.Select(i => i.Name));
+
+        if (excludeRegex != null)
+        {
+            matches = matches.Where(item => !excludeRegex.IsMatch(item.Name)).ToList();
+            _logger.LogInformation("Matching libraries (Without Excluded): {Libraries}", matches.Select(i => i.Name));
+        }
+        else
+        {
+            _logger.LogInformation("No exclusion defined -- proceeding");
+        }
+
+        return matches.Select(it => it.Id).ToArray();
     }
 }

@@ -7,6 +7,29 @@
 <body>
 <div id="AnimeThemesConfigPage" data-role="page" class="page type-interior pluginConfigurationPage"
      data-require="emby-input,emby-button,emby-select,emby-checkbox">
+    <style>
+        .at-tab-header {
+            display: flex;
+            align-items: end;
+            margin-bottom: -30px;
+        }
+
+        .at-tab-header h3 {
+            cursor: pointer;
+            background: white;
+            color: black;
+            padding: 0.5em;
+            transform: translate(0, -19px);
+            transition: height 100ms ease-out;
+            opacity: 0.6;
+        }
+
+        .at-tab-header h3.selected {
+            height: 2.7em;
+            opacity: 1.0;
+        }
+    </style>
+
     <div data-role="content">
         <div class="content-primary">
             <form id="AnimeThemesConfigForm">
@@ -29,105 +52,121 @@
                             accordingly.
                         </div>
                     </div>
-                </div>
-
-                <div class="verticalSection">
-                    <h2>Audio Files</h2>
-
-                    <div class="selectContainer">
-                        <label class="selectLabel" for="AudioFetchType">Fetch Behavior</label>
-                        <select is="emby-select" id="AudioFetchType" name="AudioFetchType"
-                                class="emby-select-withcolor emby-select">
-                            <option value="None">Don't download</option>
-                            <option value="Single">Single theme</option>
-                            <option value="All">All themes</option>
-                        </select>
-                    </div>
-
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="AudioIgnoreOverlapping" name="AudioIgnoreOverlapping" type="checkbox"
-                                   is="emby-checkbox"/>
-                            <span>Ignore themes that overlap with episode</span>
-                        </label>
-                    </div>
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="AudioIgnoreThemesWithCredits" name="AudioIgnoreThemesWithCredits" type="checkbox"
-                                   is="emby-checkbox"/>
-                            <span>Ignore themes that contain credits</span>
-                        </label>
-                    </div>
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="AudioIgnoreOPs" name="AudioIgnoreOPs" type="checkbox" is="emby-checkbox"/>
-                            <span>Ignore OP themes</span>
-                        </label>
-                    </div>
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="AudioIgnoreEDs" name="AudioIgnoreEDs" type="checkbox" is="emby-checkbox"/>
-                            <span>Ignore ED themes</span>
-                        </label>
-                    </div>
-
                     <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="AudioVolume">Volume</label>
-                        <input id="AudioVolume" name="AudioVolume" type="range" is="emby-input" min="0" max="1"
-                               step="0.05"/>
-                        <div class="fieldDescription">Volume of the downloaded files. Will be baked in.</div>
+                        <label class="inputLabel inputLabelUnfocused" for="IncludeLibraries">Included Libraries (Regex)</label>
+                        <input id="IncludeLibraries" name="IncludeLibraries" type="text" is="emby-input"/>
+                        <div class="fieldDescription">Matching libraries will be searched for anime themes <strong>unless they are matched by the excluded regex</strong>. Case-insensitive.</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="ExcludeLibraries">Excluded Libraries (Regex)</label>
+                        <input id="ExcludeLibraries" name="ExcludeLibraries" type="text" is="emby-input"/>
+                        <div class="fieldDescription">Matching libraries will be ignored even if they are matched by the above regex. Leave empty to ignore. Case-insensitive.</div>
                     </div>
                 </div>
 
-                <div class="verticalSection">
-                    <h2>Video Files</h2>
+                <fieldset>
+                    <legend class="at-tab-header">
+                        <h3 id="at-series-title" class="emby-button selected">Series</h3>
+                        <h3 id="at-movies-title" class="emby-button">Movies</h3>
+                    </legend>
+                    <div class="verticalSection">
+                        <h2>Audio Files</h2>
 
-                    <div class="selectContainer">
-                        <label class="selectLabel" for="VideoFetchType">Fetch Behavior</label>
-                        <select is="emby-select" id="VideoFetchType" name="VideoFetchType"
-                                class="emby-select-withcolor emby-select">
-                            <option value="None">Don't download</option>
-                            <option value="Single">Single theme</option>
-                            <option value="All">All themes</option>
-                        </select>
-                    </div>
+                        <div class="selectContainer">
+                            <label class="selectLabel" for="AudioFetchType">Fetch Behavior</label>
+                            <select is="emby-select" id="AudioFetchType" name="AudioFetchType"
+                                    class="emby-select-withcolor emby-select">
+                                <option value="None">Don't download</option>
+                                <option value="Single">Single theme</option>
+                                <option value="All">All themes</option>
+                            </select>
+                        </div>
 
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="VideoIgnoreOverlapping" name="VideoIgnoreOverlapping" type="checkbox"
-                                   is="emby-checkbox"/>
-                            <span>Ignore themes that overlap with episode</span>
-                        </label>
-                    </div>
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="VideoIgnoreThemesWithCredits" name="VideoIgnoreThemesWithCredits" type="checkbox"
-                                   is="emby-checkbox"/>
-                            <span>Ignore themes that contain credits</span>
-                        </label>
-                    </div>
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="VideoIgnoreOPs" name="VideoIgnoreOPs" type="checkbox" is="emby-checkbox"/>
-                            <span>Ignore OP themes</span>
-                        </label>
-                    </div>
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="VideoIgnoreEDs" name="VideoIgnoreEDs" type="checkbox" is="emby-checkbox"/>
-                            <span>Ignore ED themes</span>
-                        </label>
-                    </div>
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input id="AudioIgnoreOverlapping" name="AudioIgnoreOverlapping" type="checkbox"
+                                       is="emby-checkbox"/>
+                                <span>Ignore themes that overlap with episode</span>
+                            </label>
+                        </div>
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input id="AudioIgnoreThemesWithCredits" name="AudioIgnoreThemesWithCredits" type="checkbox"
+                                       is="emby-checkbox"/>
+                                <span>Ignore themes that contain credits</span>
+                            </label>
+                        </div>
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input id="AudioIgnoreOPs" name="AudioIgnoreOPs" type="checkbox" is="emby-checkbox"/>
+                                <span>Ignore OP themes</span>
+                            </label>
+                        </div>
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input id="AudioIgnoreEDs" name="AudioIgnoreEDs" type="checkbox" is="emby-checkbox"/>
+                                <span>Ignore ED themes</span>
+                            </label>
+                        </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="VideoVolume">Volume</label>
-                        <input id="VideoVolume" name="VideoVolume" type="range" is="emby-input" min="0" max="1"
-                               step="0.05"/>
-                        <div class="fieldDescription">Volume of the downloaded files. Set to 0 to mute. Will be baked
-                            in.
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="AudioVolume">Volume</label>
+                            <input id="AudioVolume" name="AudioVolume" type="range" is="emby-input" min="0" max="1"
+                                   step="0.05"/>
+                            <div class="fieldDescription">Volume of the downloaded files. Will be baked in.</div>
                         </div>
                     </div>
-                </div>
+
+                    <div class="verticalSection">
+                        <h2>Video Files</h2>
+
+                        <div class="selectContainer">
+                            <label class="selectLabel" for="VideoFetchType">Fetch Behavior</label>
+                            <select is="emby-select" id="VideoFetchType" name="VideoFetchType"
+                                    class="emby-select-withcolor emby-select">
+                                <option value="None">Don't download</option>
+                                <option value="Single">Single theme</option>
+                                <option value="All">All themes</option>
+                            </select>
+                        </div>
+
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input id="VideoIgnoreOverlapping" name="VideoIgnoreOverlapping" type="checkbox"
+                                       is="emby-checkbox"/>
+                                <span>Ignore themes that overlap with episode</span>
+                            </label>
+                        </div>
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input id="VideoIgnoreThemesWithCredits" name="VideoIgnoreThemesWithCredits" type="checkbox"
+                                       is="emby-checkbox"/>
+                                <span>Ignore themes that contain credits</span>
+                            </label>
+                        </div>
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input id="VideoIgnoreOPs" name="VideoIgnoreOPs" type="checkbox" is="emby-checkbox"/>
+                                <span>Ignore OP themes</span>
+                            </label>
+                        </div>
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input id="VideoIgnoreEDs" name="VideoIgnoreEDs" type="checkbox" is="emby-checkbox"/>
+                                <span>Ignore ED themes</span>
+                            </label>
+                        </div>
+
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="VideoVolume">Volume</label>
+                            <input id="VideoVolume" name="VideoVolume" type="range" is="emby-input" min="0" max="1"
+                                   step="0.05"/>
+                            <div class="fieldDescription">Volume of the downloaded files. Set to 0 to mute. Will be baked
+                                in.
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
 
                 <div>
                     <button is="emby-button" type="submit" class="raised button-submit block emby-button">
@@ -138,65 +177,135 @@
         </div>
     </div>
     <script type="text/javascript">
-        var AnimeThemesConfig = {
-            pluginUniqueId: '086022b5-29fb-4f89-a298-3d595492a5ed'
-        };
+        (function () {
+            const AnimeThemesConfig = {
+                pluginUniqueId: '086022b5-29fb-4f89-a298-3d595492a5ed'
+            };
 
-        document.querySelector('#AnimeThemesConfigPage')
-            .addEventListener('pageshow', function () {
-                Dashboard.showLoadingMsg();
+            var config = {};
 
-                ApiClient.getPluginConfiguration(AnimeThemesConfig.pluginUniqueId).then(function (config) {
-                    document.querySelector('#DegreeOfParallelism').value = config.DegreeOfParallelism;
-                    document.querySelector('#ForceSync').checked = config.ForceSync;
+            const seriesTitle = document.querySelector("#at-series-title");
+            const moviesTitle = document.querySelector("#at-movies-title");
 
-                    document.querySelector('#AudioFetchType').value = config.AudioSettings.FetchType;
-                    document.querySelector('#AudioIgnoreOverlapping').checked = config.AudioSettings.IgnoreOverlapping;
-                    document.querySelector('#AudioIgnoreThemesWithCredits').checked = config.AudioSettings.IgnoreThemesWithCredits;
-                    document.querySelector('#AudioIgnoreEDs').checked = config.AudioSettings.IgnoreEDs;
-                    document.querySelector('#AudioIgnoreOPs').checked = config.AudioSettings.IgnoreOPs;
-                    document.querySelector('#AudioVolume').value = config.AudioSettings.Volume;
+            async function getLibraries() {
+                const items = await ApiClient.getItems();
+                if (!items || !items.Items) {
+                    return [];
+                }
 
-                    document.querySelector('#VideoFetchType').value = config.VideoSettings.FetchType;
-                    document.querySelector('#VideoIgnoreOverlapping').checked = config.VideoSettings.IgnoreOverlapping;
-                    document.querySelector('#VideoIgnoreThemesWithCredits').checked = config.VideoSettings.IgnoreThemesWithCredits;
-                    document.querySelector('#VideoIgnoreEDs').checked = config.VideoSettings.IgnoreEDs;
-                    document.querySelector('#VideoIgnoreOPs').checked = config.VideoSettings.IgnoreOPs;
-                    document.querySelector('#VideoVolume').value = config.VideoSettings.Volume;
+                return items.Items;
+            }
+
+            function selectMovies() {
+                // Make sure we grab the changes before switching.
+                readConfigFromHtml();
+
+                moviesTitle.classList.add("selected");
+                seriesTitle.classList.remove("selected");
+
+                // Write the new page.
+                writeConfigToHtml();
+            }
+
+            function selectSeries() {
+                readConfigFromHtml();
+
+                moviesTitle.classList.remove("selected");
+                seriesTitle.classList.add("selected");
+
+                writeConfigToHtml();
+            }
+
+            /**
+             * Reads the current config from HTML, respecting the currently selected tab.
+             */
+            function readConfigFromHtml() {
+                config.DegreeOfParallelism = document.querySelector('#DegreeOfParallelism').value;
+                config.ForceSync = document.querySelector('#ForceSync').checked;
+                config.IncludeLibraries = document.querySelector('#IncludeLibraries').value;
+                config.ExcludeLibraries = document.querySelector('#ExcludeLibraries').value;
+
+                const target = seriesTitle.matches(".selected")
+                    ? config
+                    : (config.MovieSettings ?? {});
+
+                target.AudioSettings.FetchType = document.querySelector('#AudioFetchType').value;
+                target.AudioSettings.IgnoreOverlapping = document.querySelector('#AudioIgnoreOverlapping').checked;
+                target.AudioSettings.IgnoreThemesWithCredits = document.querySelector('#AudioIgnoreThemesWithCredits').checked;
+                target.AudioSettings.IgnoreEDs = document.querySelector('#AudioIgnoreEDs').checked;
+                target.AudioSettings.IgnoreOPs = document.querySelector('#AudioIgnoreOPs').checked;
+                target.AudioSettings.Volume = document.querySelector('#AudioVolume').value;
+
+                target.VideoSettings.FetchType = document.querySelector('#VideoFetchType').value;
+                target.VideoSettings.IgnoreOverlapping = document.querySelector('#VideoIgnoreOverlapping').checked;
+                target.VideoSettings.IgnoreThemesWithCredits = document.querySelector('#VideoIgnoreThemesWithCredits').checked;
+                target.VideoSettings.IgnoreEDs = document.querySelector('#VideoIgnoreEDs').checked;
+                target.VideoSettings.IgnoreOPs = document.querySelector('#VideoIgnoreOPs').checked;
+                target.VideoSettings.Volume = document.querySelector('#VideoVolume').value;
+            }
+
+
+            /**
+             * Writes the current config to HTML, respecting the currently selected tab.
+             */
+            function writeConfigToHtml() {
+                document.querySelector('#DegreeOfParallelism').value = config.DegreeOfParallelism;
+                document.querySelector('#ForceSync').checked = config.ForceSync;
+                document.querySelector('#IncludeLibraries').value = config.IncludeLibraries;
+                document.querySelector('#ExcludeLibraries').value = config.ExcludeLibraries;
+
+                const target = seriesTitle.matches(".selected")
+                    ? config
+                    : (config.MovieSettings ?? {});
+
+                document.querySelector('#AudioFetchType').value = target.AudioSettings.FetchType;
+                document.querySelector('#AudioIgnoreOverlapping').checked = target.AudioSettings.IgnoreOverlapping;
+                document.querySelector('#AudioIgnoreThemesWithCredits').checked = target.AudioSettings.IgnoreThemesWithCredits;
+                document.querySelector('#AudioIgnoreEDs').checked = target.AudioSettings.IgnoreEDs;
+                document.querySelector('#AudioIgnoreOPs').checked = target.AudioSettings.IgnoreOPs;
+                document.querySelector('#AudioVolume').value = target.AudioSettings.Volume;
+
+                document.querySelector('#VideoFetchType').value = target.VideoSettings.FetchType;
+                document.querySelector('#VideoIgnoreOverlapping').checked = target.VideoSettings.IgnoreOverlapping;
+                document.querySelector('#VideoIgnoreThemesWithCredits').checked = target.VideoSettings.IgnoreThemesWithCredits;
+                document.querySelector('#VideoIgnoreEDs').checked = target.VideoSettings.IgnoreEDs;
+                document.querySelector('#VideoIgnoreOPs').checked = target.VideoSettings.IgnoreOPs;
+                document.querySelector('#VideoVolume').value = target.VideoSettings.Volume;
+            }
+
+            document.querySelector('#AnimeThemesConfigPage')
+                .addEventListener('pageshow', async function () {
+                    Dashboard.showLoadingMsg();
+
+                    config = await ApiClient.getPluginConfiguration(AnimeThemesConfig.pluginUniqueId);
+                    writeConfigToHtml();
 
                     Dashboard.hideLoadingMsg();
                 });
-            });
 
-        document.querySelector('#AnimeThemesConfigForm')
-            .addEventListener('submit', function (e) {
-                Dashboard.showLoadingMsg();
-                ApiClient.getPluginConfiguration(AnimeThemesConfig.pluginUniqueId).then(function (config) {
-                    config.DegreeOfParallelism = document.querySelector('#DegreeOfParallelism').value;
-                    config.ForceSync = document.querySelector('#ForceSync').checked;
+            document.querySelector('#AnimeThemesConfigForm')
+                .addEventListener('submit', function (e) {
+                    Dashboard.showLoadingMsg();
 
-                    config.AudioSettings.FetchType = document.querySelector('#AudioFetchType').value;
-                    config.AudioSettings.IgnoreOverlapping = document.querySelector('#AudioIgnoreOverlapping').checked;
-                    config.AudioSettings.IgnoreThemesWithCredits = document.querySelector('#AudioIgnoreThemesWithCredits').checked;
-                    config.AudioSettings.IgnoreEDs = document.querySelector('#AudioIgnoreEDs').checked;
-                    config.AudioSettings.IgnoreOPs = document.querySelector('#AudioIgnoreOPs').checked;
-                    config.AudioSettings.Volume = document.querySelector('#AudioVolume').value;
-
-                    config.VideoSettings.FetchType = document.querySelector('#VideoFetchType').value;
-                    config.VideoSettings.IgnoreOverlapping = document.querySelector('#VideoIgnoreOverlapping').checked;
-                    config.VideoSettings.IgnoreThemesWithCredits = document.querySelector('#VideoIgnoreThemesWithCredits').checked;
-                    config.VideoSettings.IgnoreEDs = document.querySelector('#VideoIgnoreEDs').checked;
-                    config.VideoSettings.IgnoreOPs = document.querySelector('#VideoIgnoreOPs').checked;
-                    config.VideoSettings.Volume = document.querySelector('#VideoVolume').value;
+                    readConfigFromHtml();
 
                     ApiClient.updatePluginConfiguration(AnimeThemesConfig.pluginUniqueId, config).then(function (result) {
                         Dashboard.processPluginConfigurationUpdateResult(result);
                     });
+
+                    e.preventDefault();
+                    return false;
                 });
 
-                e.preventDefault();
-                return false;
+            seriesTitle.addEventListener('click', function () {
+                selectSeries();
             });
+
+            moviesTitle.addEventListener('click', function () {
+                selectMovies();
+            });
+
+        })();
     </script>
 </div>
 </body>

@@ -13,7 +13,6 @@ using Jellyfin.Plugin.AnimeThemes.Models;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Entities;
-using MediaBrowser.Model.MediaInfo;
 using Microsoft.Extensions.Logging;
 using Video = Jellyfin.Plugin.AnimeThemes.Models.Video;
 
@@ -79,14 +78,17 @@ public class AnimeThemesDownloader : IDisposable
 
         _logger.LogInformation("[{Id}] Attempting to filter theme songs for: {Name} (AniDB={AniId})", item.Id, item.Name, id);
 
+        bool isMovie = item.GetBaseItemKind() == BaseItemKind.Movie;
+        var collectionTypeConfig = isMovie ? configuration.MovieSettings : new CollectionTypeConfiguration { AudioSettings = configuration.AudioSettings, VideoSettings = configuration.VideoSettings };
+
         // Process videos
-        await ProcessMediaType(MediaType.Video, anime, item, configuration, cancellationToken).ConfigureAwait(false);
+        await ProcessMediaType(MediaType.Video, anime, item, configuration.ForceSync, collectionTypeConfig, cancellationToken).ConfigureAwait(false);
 
         // Process audios
-        await ProcessMediaType(MediaType.Audio, anime, item, configuration, cancellationToken).ConfigureAwait(false);
+        await ProcessMediaType(MediaType.Audio, anime, item, configuration.ForceSync, collectionTypeConfig, cancellationToken).ConfigureAwait(false);
     }
 
-    private async ValueTask ProcessMediaType(MediaType type, Anime anime, BaseItem item, PluginConfiguration configuration, CancellationToken cancellationToken = default)
+    private async ValueTask ProcessMediaType(MediaType type, Anime anime, BaseItem item, bool forceSync, CollectionTypeConfiguration configuration, CancellationToken cancellationToken = default)
     {
         var settings = type == MediaType.Audio ? configuration.AudioSettings : configuration.VideoSettings;
 
@@ -99,7 +101,7 @@ public class AnimeThemesDownloader : IDisposable
         var links = ExtractLinks(type, requiredThemes, settings).ToArray();
 
         // Before we start the download, make sure the folders are in a clean state.
-        if (configuration.ForceSync)
+        if (forceSync)
         {
             if (type == MediaType.Audio)
             {
@@ -149,7 +151,7 @@ public class AnimeThemesDownloader : IDisposable
 
     private void RemoveFile(BaseItem series, string filename)
     {
-        var path = Path.Combine(series.Path, filename);
+        var path = Path.Combine(series.ContainingFolderPath, filename);
         if (File.Exists(path))
         {
             File.Delete(path);
@@ -161,7 +163,7 @@ public class AnimeThemesDownloader : IDisposable
         var directory = mediaType == MediaType.Audio ? ThemeMusicDirectory : ThemeVideoDirectory;
         var searchPattern = mediaType == MediaType.Audio ? "*.mp3" : "*.webm";
 
-        var path = Path.Combine(series.Path, directory);
+        var path = Path.Combine(series.ContainingFolderPath, directory);
         if (!Directory.Exists(path))
         {
             return;
@@ -182,7 +184,7 @@ public class AnimeThemesDownloader : IDisposable
 
     private async ValueTask Download(MediaType type, string url, BaseItem item, string relativePath, double volume = 1.0, CancellationToken cancellationToken = default)
     {
-        var path = Path.Combine(item.Path, relativePath);
+        var path = Path.Combine(item.ContainingFolderPath, relativePath);
         if (File.Exists(path))
         {
             // Nothing to do
@@ -272,7 +274,7 @@ public class AnimeThemesDownloader : IDisposable
         id = -1;
 
         // Ignore non-series and already processed ones.
-        if (item.GetBaseItemKind() != BaseItemKind.Series)
+        if (item.GetBaseItemKind() != BaseItemKind.Series && item.GetBaseItemKind() != BaseItemKind.Movie)
         {
             return false;
         }
