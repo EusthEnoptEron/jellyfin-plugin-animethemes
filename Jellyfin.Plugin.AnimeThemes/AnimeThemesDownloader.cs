@@ -215,6 +215,7 @@ public class AnimeThemesDownloader : IDisposable
 
                     // Must consume both or ffmpeg may hang due to deadlocks.
                     RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     FileName = _mediaEncoder.EncoderPath,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     ErrorDialog = false,
@@ -246,8 +247,15 @@ public class AnimeThemesDownloader : IDisposable
             arguments.Add(path);
 
             process.Start();
-            var memoryStream = new MemoryStream();
-            await process.StandardOutput.BaseStream.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(false);
+
+            var error = await process.StandardError.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+
+            if (process.ExitCode != 0)
+            {
+                var commandInfo = $"Command line: {process.StartInfo.FileName} {string.Join(" ", arguments)}";
+                throw new ConversionException(process.ExitCode, commandInfo + "\n" + error);
+            }
 
             _logger.LogInformation("[{Id}] Successfully downloaded theme song!", item.Id);
         }
@@ -386,4 +394,19 @@ internal enum MediaType
 {
     Video,
     Audio
+}
+
+/// <summary>
+/// Exception that is thrown when the converison using FFMPEG fails.
+/// </summary>
+public class ConversionException : Exception
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ConversionException"/> class.
+    /// </summary>
+    /// <param name="exitCode">Exit code of the process.</param>
+    /// <param name="error">Stderr output.</param>
+    public ConversionException(int exitCode, string error) : base($"Conversion failed with exit code {exitCode}. Error: {error}")
+    {
+    }
 }
