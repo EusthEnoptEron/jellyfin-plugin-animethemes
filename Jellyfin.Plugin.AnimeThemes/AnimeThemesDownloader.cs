@@ -241,7 +241,7 @@ public class AnimeThemesDownloader : IDisposable
             else
             {
                 arguments.Add("-filter:a");
-                arguments.Add($"volume={volume:0.00}");
+                arguments.Add(string.Create(CultureInfo.InvariantCulture, $"volume={volume:0.00}"));
             }
 
             arguments.Add(path);
