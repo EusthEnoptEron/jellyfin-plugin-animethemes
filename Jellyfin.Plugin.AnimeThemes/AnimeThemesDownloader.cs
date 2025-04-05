@@ -11,7 +11,9 @@ using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.AnimeThemes.Configuration;
 using Jellyfin.Plugin.AnimeThemes.Models;
 using MediaBrowser.Controller.Entities;
+using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.MediaEncoding;
+using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 using Video = Jellyfin.Plugin.AnimeThemes.Models.Video;
@@ -67,7 +69,7 @@ public class AnimeThemesDownloader : IDisposable
             return;
         }
 
-        _logger.LogInformation("[{Id}] Getting theme songs for item", item.Id);
+        _logger.LogInformation("[{Id}] Getting theme songs for item \"{Name}\"", item.Id, item.Name);
 
         // Get Anime with all its themes
         var anime = await _api.FindByAniDbId(id, cancellationToken).ConfigureAwait(false);
@@ -82,13 +84,19 @@ public class AnimeThemesDownloader : IDisposable
         var collectionTypeConfig = isMovie ? configuration.MovieSettings : new CollectionTypeConfiguration { AudioSettings = configuration.AudioSettings, VideoSettings = configuration.VideoSettings };
 
         // Process videos
-        await ProcessMediaType(MediaType.Video, anime, item, configuration.ForceSync, collectionTypeConfig, cancellationToken).ConfigureAwait(false);
+        bool videoChanged = await ProcessMediaType(MediaType.Video, anime, item, configuration.ForceSync, collectionTypeConfig, cancellationToken).ConfigureAwait(false);
 
         // Process audios
-        await ProcessMediaType(MediaType.Audio, anime, item, configuration.ForceSync, collectionTypeConfig, cancellationToken).ConfigureAwait(false);
+        bool audioChanged = await ProcessMediaType(MediaType.Audio, anime, item, configuration.ForceSync, collectionTypeConfig, cancellationToken).ConfigureAwait(false);
+
+        if (videoChanged || audioChanged)
+        {
+            _logger.LogInformation("[{Id}] Saving metadata", item.Id);
+            await item.RefreshMetadata(cancellationToken).ConfigureAwait(false);
+        }
     }
 
-    private async ValueTask ProcessMediaType(MediaType type, Anime anime, BaseItem item, bool forceSync, CollectionTypeConfiguration configuration, CancellationToken cancellationToken = default)
+    private async ValueTask<bool> ProcessMediaType(MediaType type, Anime anime, BaseItem item, bool forceSync, CollectionTypeConfiguration configuration, CancellationToken cancellationToken = default)
     {
         var settings = type == MediaType.Audio ? configuration.AudioSettings : configuration.VideoSettings;
 
@@ -112,11 +120,14 @@ public class AnimeThemesDownloader : IDisposable
             CleanDirectory(item, type, links.Select(it => Path.GetFileName(it.Filepath)));
         }
 
+        bool changesMade = false;
         foreach (var (url, relativePath) in links)
         {
             // Download if needed
-            await Download(type, url, item, relativePath, settings.Volume, cancellationToken).ConfigureAwait(false);
+            changesMade |= await Download(type, url, item, relativePath, settings.Volume, cancellationToken).ConfigureAwait(false);
         }
+
+        return changesMade;
     }
 
     private IEnumerable<FlattenedTheme> PickThemes(FetchType fetchType, IEnumerable<FlattenedTheme> themes)
@@ -182,13 +193,13 @@ public class AnimeThemesDownloader : IDisposable
         }
     }
 
-    private async ValueTask Download(MediaType type, string url, BaseItem item, string relativePath, double volume = 1.0, CancellationToken cancellationToken = default)
+    private async ValueTask<bool> Download(MediaType type, string url, BaseItem item, string relativePath, double volume = 1.0, CancellationToken cancellationToken = default)
     {
         var path = Path.Combine(item.ContainingFolderPath, relativePath);
         if (File.Exists(path))
         {
             // Nothing to do
-            return;
+            return false;
         }
 
         var tempFile = Path.GetTempFileName();
@@ -262,11 +273,14 @@ public class AnimeThemesDownloader : IDisposable
         catch (Exception e)
         {
             _logger.LogError(e, "Download failed");
+            return false;
         }
         finally
         {
             File.Delete(tempFile);
         }
+
+        return true;
     }
 
     private bool IsSatisfied(BaseItem item, PluginConfiguration configuration)

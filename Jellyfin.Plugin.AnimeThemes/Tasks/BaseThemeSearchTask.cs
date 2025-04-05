@@ -81,8 +81,6 @@ public abstract class BaseThemeSearchTask
         }).ConfigureAwait(false);
 
         _logger.LogInformation("Ending theme search ({Count})", count);
-
-        _libraryManager.QueueLibraryScan();
     }
 
     private Guid[] GetApplicableItems(PluginConfiguration configuration)
