@@ -25,15 +25,15 @@ Also make sure to enable theme music / videos in your display settings.
 
 ## Configuration
 
-| Configuration                            | Description                                                                                               |
-|------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| Degree of parallelism                    | How many items should be downloaded in parallel. Default is set to 1 to go easy on the servers.           |
-| Ignore themes that overlap with episode  | Some shows transition into their themes. Use this setting to filter those themes out.                     |
-| Ignore themes with credits               | Whether to skip themes with credits in them. Useful for video downloads.                                  |
-| Ignore OP themes                         | Use this to control whether OPs are considered.                                                           |
-| Ignore ED themes                         | Use this to control whether EDs are considered.                                                           |
-| Fetch type                               | Determines if you want all distinct themes, only the best match, or none at all.                          |
-| Volume                                   | The desired volume, which will be baked in. For videos, 0 will result in the audio channel being removed. |
+| Configuration                           | Description                                                                                               |
+|-----------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| Degree of parallelism                   | How many items should be downloaded in parallel. Default is set to 1 to go easy on the servers.           |
+| Ignore themes that overlap with episode | Some shows transition into their themes. Use this setting to filter those themes out.                     |
+| Ignore themes with credits              | Whether to skip themes with credits in them. Useful for video downloads.                                  |
+| Ignore OP themes                        | Use this to control whether OPs are considered.                                                           |
+| Ignore ED themes                        | Use this to control whether EDs are considered.                                                           |
+| Fetch type                              | Determines if you want all distinct themes, only the best match, or none at all.                          |
+| Volume                                  | The desired volume, which will be baked in. For videos, 0 will result in the audio channel being removed. |
 
 ## Other notes
 
@@ -41,7 +41,7 @@ If you want the videos to cover the whole screen, try the following CSS:
 
 ```css
 body:not(.hide-scroll) > .videoPlayerContainer > video {
-   object-fit: cover;
+    object-fit: cover;
 }
 ```
 
