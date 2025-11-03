@@ -1,9 +1,9 @@
 ---
 name: "AnimeThemes"
 guid: "086022b5-29fb-4f89-a298-3d595492a5ed"
-version: "1.2.2.0"
-targetAbi: "10.10.0.0"
-framework: "net8.0"
+version: "1.3.0.0"
+targetAbi: "10.11.0.0"
+framework: "net9.0"
 overview: "Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe"
 description: >
   Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe.
