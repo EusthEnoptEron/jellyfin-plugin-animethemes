@@ -54,9 +54,10 @@ public class AnimeThemesApi : IDisposable
         var result = await _client.GetAsync(uri, cancellationToken).ConfigureAwait(false);
         result.EnsureSuccessStatusCode();
 
-        using var content = await result.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-        var response = await JsonSerializer.DeserializeAsync<AnimeResponse>(content, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var content = await result.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        await using var contentDisposal = content.ConfigureAwait(false);
 
+        var response = await JsonSerializer.DeserializeAsync<AnimeResponse>(content, cancellationToken: cancellationToken).ConfigureAwait(false);
         return response?.Anime.FirstOrDefault();
     }
 

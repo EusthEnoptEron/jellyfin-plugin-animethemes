@@ -9,13 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Data.Enums;
 using Jellyfin.Plugin.AnimeThemes.Configuration;
+using Jellyfin.Plugin.AnimeThemes.Exceptions;
 using Jellyfin.Plugin.AnimeThemes.Models;
 using MediaBrowser.Controller.Entities;
-using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.MediaEncoding;
-using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
+using MediaType = Jellyfin.Plugin.AnimeThemes.Models.MediaType;
 using Video = Jellyfin.Plugin.AnimeThemes.Models.Video;
 
 namespace Jellyfin.Plugin.AnimeThemes;
@@ -399,28 +399,5 @@ public class AnimeThemesDownloader : IDisposable
     {
         Dispose(true);
         GC.SuppressFinalize(this);
-    }
-}
-
-internal sealed record FlattenedTheme(AnimeTheme Theme, AnimeThemeEntry Entry, Video Video, Audio Audio);
-
-internal enum MediaType
-{
-    Video,
-    Audio
-}
-
-/// <summary>
-/// Exception that is thrown when the converison using FFMPEG fails.
-/// </summary>
-public class ConversionException : Exception
-{
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ConversionException"/> class.
-    /// </summary>
-    /// <param name="exitCode">Exit code of the process.</param>
-    /// <param name="error">Stderr output.</param>
-    public ConversionException(int exitCode, string error) : base($"Conversion failed with exit code {exitCode}. Error: {error}")
-    {
     }
 }
