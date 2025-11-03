@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -43,27 +44,28 @@ public abstract class BaseThemeSearchTask
         _logger.LogInformation("Starting theme search");
         var configuration = Plugin.Instance!.Configuration;
         var applicable = GetApplicableItems(configuration);
-        if (applicable.Length == 0)
+        if (applicable.Count == 0)
         {
             _logger.LogInformation("No applicable items found -- aborting");
             return;
         }
 
         // @formatter:off
-        var items = _libraryManager.GetItemList(new InternalItemsQuery
-        {
-            IncludeItemTypes = new[] { BaseItemKind.Series, BaseItemKind.Movie },
-            IsVirtualItem = false,
-            Recursive = true,
-            AncestorIds = applicable,
-        });
+        var items = _libraryManager.GetItemList(
+            new InternalItemsQuery
+            {
+                IncludeItemTypes = [BaseItemKind.Series, BaseItemKind.Movie],
+                IsVirtualItem = false,
+                Recursive = true,
+            },
+            applicable);
         // @formatter:on
 
         var semaphore = new SemaphoreSlim(1, 1);
         int counter = 0;
         int count = items.Count;
         // Process in parallel
-        await Parallel.ForEachAsync(items, new ParallelOptions() { CancellationToken = cancellationToken, MaxDegreeOfParallelism = configuration.DegreeOfParallelism }, async (item, ct) =>
+        await Parallel.ForEachAsync(items, new ParallelOptions { CancellationToken = cancellationToken, MaxDegreeOfParallelism = configuration.DegreeOfParallelism }, async (item, ct) =>
         {
             await handler(item, configuration, ct).ConfigureAwait(false);
             await semaphore.WaitAsync(ct).ConfigureAwait(false);
@@ -81,7 +83,7 @@ public abstract class BaseThemeSearchTask
         _logger.LogInformation("Ending theme search ({Count})", count);
     }
 
-    private Guid[] GetApplicableItems(PluginConfiguration configuration)
+    private List<BaseItem> GetApplicableItems(PluginConfiguration configuration)
     {
         var includeRegex = !string.IsNullOrWhiteSpace(configuration.IncludeLibraries)
             ? new Regex(configuration.IncludeLibraries, RegexOptions.IgnoreCase | RegexOptions.Compiled)
@@ -91,7 +93,7 @@ public abstract class BaseThemeSearchTask
             ? new Regex(configuration.ExcludeLibraries, RegexOptions.IgnoreCase | RegexOptions.Compiled)
             : null;
 
-        var libraries = _libraryManager.GetItemList(new InternalItemsQuery { IncludeItemTypes = new[] { BaseItemKind.CollectionFolder } });
+        var libraries = _libraryManager.GetItemList(new InternalItemsQuery { IncludeItemTypes = [BaseItemKind.CollectionFolder] });
 
         _logger.LogInformation("Considering the following libraries: {Libraries}", libraries.Select(it => it.Name));
 
@@ -109,6 +111,6 @@ public abstract class BaseThemeSearchTask
             _logger.LogInformation("No exclusion defined -- proceeding");
         }
 
-        return matches.Select(it => it.Id).ToArray();
+        return matches;
     }
 }
