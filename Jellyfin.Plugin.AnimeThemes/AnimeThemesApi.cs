@@ -15,7 +15,7 @@ namespace Jellyfin.Plugin.AnimeThemes;
 /// <summary>
 /// Represents the AnimeThemes API.
 /// </summary>
-public class AnimeThemesApi : IDisposable
+public sealed class AnimeThemesApi : IDisposable
 {
     private readonly HttpClient _client;
     private readonly ILogger<AnimeThemesDownloader> _logger;
@@ -24,10 +24,11 @@ public class AnimeThemesApi : IDisposable
     /// Initializes a new instance of the <see cref="AnimeThemesApi"/> class.
     /// </summary>
     /// <param name="logger">Logger.</param>
-    public AnimeThemesApi(ILogger<AnimeThemesDownloader> logger)
+    /// <param name="clientFactory">Client factory.</param>
+    public AnimeThemesApi(IHttpClientFactory clientFactory, ILogger<AnimeThemesDownloader> logger)
     {
         _logger = logger;
-        _client = new HttpClient() { BaseAddress = new Uri("https://api.animethemes.moe") };
+        _client = clientFactory.CreateClient("AnimeThemes");
     }
 
     /// <summary>
@@ -65,7 +66,7 @@ public class AnimeThemesApi : IDisposable
     /// Disposes of the client.
     /// </summary>
     /// <param name="disposing">Whether the object is currently being disposed.</param>
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         if (disposing)
         {
@@ -77,6 +78,5 @@ public class AnimeThemesApi : IDisposable
     public void Dispose()
     {
         Dispose(true);
-        GC.SuppressFinalize(this);
     }
 }
