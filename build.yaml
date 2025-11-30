@@ -15,5 +15,6 @@ owner: "EusthEnoptEron"
 artifacts:
   - "Jellyfin.Plugin.AnimeThemes.dll"
 changelog: |-
+  - Prepare for release 2 (#29) @github-actions
   - chore: update abi (#27) @EusthEnoptEron
   - Feature/retry handling (#24) @EusthEnoptEron
