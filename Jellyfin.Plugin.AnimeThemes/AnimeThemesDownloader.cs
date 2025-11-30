@@ -38,13 +38,14 @@ public class AnimeThemesDownloader : IDisposable
     /// Initializes a new instance of the <see cref="AnimeThemesDownloader"/> class.
     /// </summary>
     /// <param name="mediaEncoder">Media Encoder to convert OGG files.</param>
+    /// <param name="clientFactory">Client factory.</param>
     /// <param name="logger">Logger.</param>
-    public AnimeThemesDownloader(IMediaEncoder mediaEncoder, ILogger<AnimeThemesDownloader> logger)
+    public AnimeThemesDownloader(IMediaEncoder mediaEncoder, IHttpClientFactory clientFactory, ILogger<AnimeThemesDownloader> logger)
     {
         _mediaEncoder = mediaEncoder;
         _logger = logger;
         _client = new HttpClient();
-        _api = new AnimeThemesApi(logger);
+        _api = new AnimeThemesApi(clientFactory, logger);
     }
 
     /// <summary>
@@ -135,7 +136,7 @@ public class AnimeThemesDownloader : IDisposable
         switch (fetchType)
         {
             case FetchType.None:
-                return Enumerable.Empty<FlattenedTheme>();
+                return [];
             case FetchType.Single:
                 return themes.Take(1);
             case FetchType.All:
