@@ -70,6 +70,14 @@
                 "sourceUrl": "https://github.com/EusthEnoptEron/jellyfin-plugin-animethemes/releases/download/2/animethemes_2.0.0.0.zip",
                 "timestamp": "2025-11-30T15:30:00Z",
                 "version": "2.0.0.0"
+            },
+            {
+                "checksum": "cd1c22ee3308f8ebb19165120d06e01c",
+                "changelog": "* Fix: Add User-Agent header to resolve API 403 Forbidden error (#32) @yuuta0331",
+                "targetAbi": "10.11.6.0",
+                "sourceUrl": "https://github.com/EusthEnoptEron/jellyfin-plugin-animethemes/releases/download/3/animethemes_3.0.0.0.zip",
+                "timestamp": "2026-02-07T21:41:00Z",
+                "version": "3.0.0.0"
             }
         ]
     }
