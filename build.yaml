@@ -15,4 +15,5 @@ owner: "EusthEnoptEron"
 artifacts:
   - "Jellyfin.Plugin.AnimeThemes.dll"
 changelog: |-
+  - Prepare for release 3 (#34) @[github-actions[bot]](https://github.com/apps/github-actions)
   - Fix: Add User-Agent header to resolve API 403 Forbidden error (#32) @yuuta0331
