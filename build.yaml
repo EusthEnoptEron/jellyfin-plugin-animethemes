@@ -1,8 +1,8 @@
 ---
 name: "AnimeThemes"
 guid: "086022b5-29fb-4f89-a298-3d595492a5ed"
-version: 3
-targetAbi: "10.11.3.0"
+version: untagged-692d2c5d490d313750c9
+targetAbi: "10.11.6.0"
 framework: "net9.0"
 overview: "Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe"
 description: >
@@ -15,4 +15,4 @@ owner: "EusthEnoptEron"
 artifacts:
   - "Jellyfin.Plugin.AnimeThemes.dll"
 changelog: |-
-  - Fix: Add User-Agent header to resolve API 403 Forbidden error (#32) @yuuta0331
+  - fix: do not send a user-agent header to prevent the animethemes api from blocking us (#36) @EusthEnoptEron
