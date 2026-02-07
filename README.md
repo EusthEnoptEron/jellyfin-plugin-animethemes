@@ -44,5 +44,3 @@ body:not(.hide-scroll) > .videoPlayerContainer > video {
     object-fit: cover;
 }
 ```
-
-!Test
