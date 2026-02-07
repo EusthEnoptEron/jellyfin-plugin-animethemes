@@ -78,6 +78,14 @@
                 "sourceUrl": "https://github.com/EusthEnoptEron/jellyfin-plugin-animethemes/releases/download/3/animethemes_3.0.0.0-corrected.zip",
                 "timestamp": "2026-02-07T21:41:00Z",
                 "version": "3.0.0.0"
+            },
+            {
+                "checksum": "e5b47c4275b6c1da7d289190ab9ac538",
+                "changelog": "* fix: do not send a user-agent header to prevent the animethemes api from blocking us (#36) @EusthEnoptEron\n",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/EusthEnoptEron/jellyfin-plugin-animethemes/releases/download/4/animethemes_4.0.0.0.zip",
+                "timestamp": "2026-02-07T22:38:17Z",
+                "version": "4.0.0.0"
             }
         ]
     }
