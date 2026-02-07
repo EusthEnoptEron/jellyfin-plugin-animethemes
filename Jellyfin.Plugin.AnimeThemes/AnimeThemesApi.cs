@@ -29,6 +29,8 @@ public sealed class AnimeThemesApi : IDisposable
     {
         _logger = logger;
         _client = clientFactory.CreateClient("AnimeThemes");
+        _client.DefaultRequestHeaders.UserAgent.Clear();
+        _client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Jellyfin-Plugin-AnimeThemes");
     }
 
     /// <summary>
