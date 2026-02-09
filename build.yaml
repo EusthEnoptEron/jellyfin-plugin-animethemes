@@ -1,7 +1,7 @@
 ---
 name: "AnimeThemes"
 guid: "086022b5-29fb-4f89-a298-3d595492a5ed"
-version: 4
+version: 5
 targetAbi: "10.11.3.0"
 framework: "net9.0"
 overview: "Plugin for Jellyfin that fetches anime themes (OPs and EDs) from animethemes.moe"
@@ -15,4 +15,4 @@ owner: "EusthEnoptEron"
 artifacts:
   - "Jellyfin.Plugin.AnimeThemes.dll"
 changelog: |-
-  - fix: do not send a user-agent header to prevent the animethemes api from blocking us (#36) @EusthEnoptEron
+  - Batch requests to AnimeThemes API (#40) @EusthEnoptEron
