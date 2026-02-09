@@ -52,6 +52,17 @@ public class AnimeThemesDownloader : IDisposable
     }
 
     /// <summary>
+    /// Checks if this item should be processed.
+    /// </summary>
+    /// <param name="item">Item to check.</param>
+    /// <param name="configuration">Plugin configuration.</param>
+    /// <returns>Whether item should be processed.</returns>
+    public bool ShouldUpdate(BaseItem item, PluginConfiguration configuration)
+    {
+        return TryGetAniDbId(item, configuration, out var id) && !IsSatisfied(item, configuration);
+    }
+
+    /// <summary>
     /// Resolves a list of BaseItems to a list of BaseItems with their corresponding anime object.
     /// </summary>
     /// <param name="items">Chunk of items.</param>
@@ -60,9 +71,9 @@ public class AnimeThemesDownloader : IDisposable
     /// <returns>A filtered list of items to be processed with their corresponding anime.</returns>
     public async IAsyncEnumerable<ItemWithAnime> ResolveItems(BaseItem[] items, PluginConfiguration configuration, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var itemsByAniDb = items.GroupBy((it) =>
+        var itemsByAniDb = items.GroupBy(it =>
         {
-            if (TryGetAniDbId(it, configuration, out var id) && !IsSatisfied(it, configuration))
+            if (TryGetAniDbId(it, configuration, out var id))
             {
                 return id;
             }
