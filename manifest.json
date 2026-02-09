@@ -94,6 +94,14 @@
                 "sourceUrl": "https://github.com/EusthEnoptEron/jellyfin-plugin-animethemes/releases/download/5/animethemes_5.0.0.0.zip",
                 "timestamp": "2026-02-09T17:52:00Z",
                 "version": "5.0.0.0"
+            },
+            {
+                "checksum": "ba6f40b1d8c007980bab3e6931b48d7e",
+                "changelog": "fix: actually fill chunks (#43) @EusthEnoptEron",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/EusthEnoptEron/jellyfin-plugin-animethemes/releases/download/5/animethemes_5.0.0.0.zip",
+                "timestamp": "2026-02-09T18:08:32Z",
+                "version": "7.0.0.0"
             }
         ]
     }
