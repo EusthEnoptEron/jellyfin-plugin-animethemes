@@ -65,7 +65,9 @@ public abstract class BaseThemeSearchTask
         // @formatter:on
 
         // Get the anime objects in chunks
-        var itemsWithAnime = await items.Chunk(ChunkSize)
+        var itemsWithAnime = await items
+            .Where(it => _downloader.ShouldUpdate(it, configuration))
+            .Chunk(ChunkSize)
             .ToAsyncEnumerable()
             .SelectMany((chunk) => _downloader.ResolveItems(chunk, configuration, cancellationToken))
             .ToListAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
