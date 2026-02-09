@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Jellyfin.Data.Enums;
@@ -49,37 +52,51 @@ public class AnimeThemesDownloader : IDisposable
     }
 
     /// <summary>
+    /// Resolves a list of BaseItems to a list of BaseItems with their corresponding anime object.
+    /// </summary>
+    /// <param name="items">Chunk of items.</param>
+    /// <param name="configuration">Plugin configuration to do some pre-filtering.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A filtered list of items to be processed with their corresponding anime.</returns>
+    public async IAsyncEnumerable<ItemWithAnime> ResolveItems(BaseItem[] items, PluginConfiguration configuration, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var itemsByAniDb = items.GroupBy((it) =>
+        {
+            if (TryGetAniDbId(it, configuration, out var id) && !IsSatisfied(it, configuration))
+            {
+                return id;
+            }
+
+            return -1;
+        }).ToDictionary((it) => it.Key, (it) => it.ToList());
+
+        var animeByAniDb = await _api.FindByAniDbId(itemsByAniDb.Keys.Where(it => it != -1), cancellationToken).ConfigureAwait(false);
+
+        foreach (var entry in animeByAniDb)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (entry.Value.Length == 0)
+            {
+                continue;
+            }
+
+            yield return new ItemWithAnime(itemsByAniDb[entry.Key].First(), new ReadOnlyCollection<Anime>(entry.Value));
+        }
+    }
+
+    /// <summary>
     /// Processes an item, downloading its theme if applicable.
     /// </summary>
     /// <param name="item">The DB item to process.</param>
+    /// <param name="anime">The anime object belonging to the item.</param>
     /// <param name="configuration">Configuration of the plugin.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task that runts until item is done processing.</returns>
-    public async ValueTask HandleAsync(BaseItem item, PluginConfiguration configuration, CancellationToken cancellationToken)
+    public async ValueTask HandleAsync(BaseItem item, Anime anime, PluginConfiguration configuration, CancellationToken cancellationToken)
     {
-        // Get AniDB ID
-        if (!TryGetAniDbId(item, configuration, out var id))
-        {
-            _logger.LogDebug("[{Id}] Item could not be identified as anime", item.Id);
-            return;
-        }
-
-        if (IsSatisfied(item, configuration) && !configuration.ForceSync)
-        {
-            _logger.LogDebug("[{Id}] Item is already in a good state", item.Id);
-            return;
-        }
-
         _logger.LogInformation("[{Id}] Getting theme songs for item \"{Name}\"", item.Id, item.Name);
-
-        // Get Anime with all its themes
-        var anime = await _api.FindByAniDbId(id, cancellationToken).ConfigureAwait(false);
-        if (anime == null || !anime.Resources.Any(resource => resource.Site == Sites.ANIDB && resource.ExternalId == id))
-        {
-            return;
-        }
-
-        _logger.LogInformation("[{Id}] Attempting to filter theme songs for: {Name} (AniDB={AniId})", item.Id, item.Name, id);
+        _logger.LogInformation("[{Id}] Attempting to filter theme songs for: {Name} (AniDB={AniId})", item.Id, item.Name, anime.Id);
 
         bool isMovie = item.GetBaseItemKind() == BaseItemKind.Movie;
         var collectionTypeConfig = isMovie ? configuration.MovieSettings : new CollectionTypeConfiguration { AudioSettings = configuration.AudioSettings, VideoSettings = configuration.VideoSettings };

@@ -32,26 +32,36 @@ public sealed class AnimeThemesApi : IDisposable
     }
 
     /// <summary>
-    /// Finds an anime with all its themes by its AniDB Id.
+    /// Finds anime with all their themes by their AniDB Ids.
     /// </summary>
-    /// <param name="id">ID on AniDB.</param>
+    /// <param name="ids">IDs on AniDB.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The anime if one was found.</returns>
-    public async ValueTask<Anime?> FindByAniDbId(int id, CancellationToken cancellationToken = default)
+    /// <returns>A dictionary with an entry for each passed <paramref name="ids"/>.</returns>
+    public async ValueTask<Dictionary<int, Anime[]>> FindByAniDbId(IEnumerable<int> ids, CancellationToken cancellationToken = default)
     {
-        // @formatter:off
-        var arguments = new Dictionary<string, string?>()
+        var idList = ids.Distinct().ToArray();
+
+        _logger.LogInformation("Looking up {Count} shows in the AnimeThemes db...", idList.Length);
+
+        if (idList.Length > 100)
         {
-            { "filter[resource][external_id]", id.ToString(CultureInfo.InvariantCulture) },
+            throw new ArgumentOutOfRangeException(nameof(ids));
+        }
+
+        // @formatter:off
+        var arguments = new Dictionary<string, string?>
+        {
+            { "filter[resource][external_id]", string.Join(",", idList.Select(it => it.ToString(CultureInfo.InvariantCulture))) },
             { "filter[resource][site]", Sites.ANIDB },
             { "filter[has]", "resources" },
+            { "page[size]", idList.Length.ToString(CultureInfo.InvariantCulture) },
             { "include", "animethemes.animethemeentries.videos.audio,resources" },
         };
         // @formatter:on
 
         var uri = QueryHelpers.AddQueryString("/anime/", arguments);
 
-        _logger.LogInformation("Fetching from API: {Uri}", uri);
+        _logger.LogInformation("Fetching from API: {Uri} (length={Length})", uri, uri.Length);
         var result = await _client.GetAsync(uri, cancellationToken).ConfigureAwait(false);
         result.EnsureSuccessStatusCode();
 
@@ -59,7 +69,11 @@ public sealed class AnimeThemesApi : IDisposable
         await using var contentDisposal = content.ConfigureAwait(false);
 
         var response = await JsonSerializer.DeserializeAsync<AnimeResponse>(content, cancellationToken: cancellationToken).ConfigureAwait(false);
-        return response?.Anime.FirstOrDefault();
+        var animeByAniId = response?.Anime.GroupBy(a => a.AniDbId!.Value).ToDictionary(a => a.Key, a => a.ToArray()) ?? new Dictionary<int, Anime[]>();
+
+        _logger.LogInformation("Of a total of {TotalCount} shows, we were able to find entries for {FinalCount} shows", idList.Length, animeByAniId.Count);
+
+        return idList.ToDictionary(id => id, id => animeByAniId.GetValueOrDefault(id) ?? []);
     }
 
     /// <summary>

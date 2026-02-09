@@ -13,7 +13,6 @@ namespace Jellyfin.Plugin.AnimeThemes.Tasks;
 /// </summary>
 public class ScheduledThemeSearchTask : BaseThemeSearchTask, IScheduledTask
 {
-    private readonly AnimeThemesDownloader _downloader;
     private readonly ILogger<ScheduledThemeSearchTask> _logger;
 
     /// <summary>
@@ -23,10 +22,9 @@ public class ScheduledThemeSearchTask : BaseThemeSearchTask, IScheduledTask
     /// <param name="libraryManager">Library Manager.</param>
     /// <param name="userManager">User Manager.</param>
     /// <param name="logger">Logger.</param>
-    public ScheduledThemeSearchTask(AnimeThemesDownloader downloader, ILibraryManager libraryManager, IUserManager userManager, ILogger<ScheduledThemeSearchTask> logger) : base(libraryManager, userManager, logger)
+    public ScheduledThemeSearchTask(AnimeThemesDownloader downloader, ILibraryManager libraryManager, IUserManager userManager, ILogger<ScheduledThemeSearchTask> logger) : base(libraryManager, downloader, userManager, logger)
     {
         _logger = logger;
-        _downloader = downloader;
     }
 
     /// <inheritdoc />
@@ -45,7 +43,7 @@ public class ScheduledThemeSearchTask : BaseThemeSearchTask, IScheduledTask
     public Task ExecuteAsync(IProgress<double> progress, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting search for anime themes");
-        return FindAndProcessAsync(progress, (item, config, ct) => _downloader.HandleAsync(item, config, ct), cancellationToken);
+        return FindAndProcessAsync(progress, cancellationToken);
     }
 
     /// <inheritdoc />

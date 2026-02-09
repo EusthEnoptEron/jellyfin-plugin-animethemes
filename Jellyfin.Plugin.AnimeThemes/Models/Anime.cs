@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace Jellyfin.Plugin.AnimeThemes.Models;
@@ -16,4 +17,10 @@ public record Anime(
     Collection<Resource> Resources,
     [property: JsonPropertyName("animethemes")]
     Collection<AnimeTheme> Themes
-);
+)
+{
+    /// <summary>
+    /// Gets the AniDB ID of this anime if available in payload.
+    /// </summary>
+    public int? AniDbId => Resources.FirstOrDefault(it => it.Site == Sites.ANIDB)?.ExternalId;
+}

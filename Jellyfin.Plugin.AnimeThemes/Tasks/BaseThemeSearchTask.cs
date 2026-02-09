@@ -17,18 +17,22 @@ namespace Jellyfin.Plugin.AnimeThemes.Tasks;
 /// </summary>
 public abstract class BaseThemeSearchTask
 {
+    private const int ChunkSize = 50;
     private readonly ILogger _logger;
+    private readonly AnimeThemesDownloader _downloader;
     private readonly ILibraryManager _libraryManager;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BaseThemeSearchTask"/> class.
     /// </summary>
     /// <param name="libraryManager">Library manager.</param>
+    /// <param name="downloader">Downloader.</param>
     /// <param name="userManager">Use manager.</param>
     /// <param name="logger">Logger.</param>
-    protected BaseThemeSearchTask(ILibraryManager libraryManager, IUserManager userManager, ILogger logger)
+    protected BaseThemeSearchTask(ILibraryManager libraryManager, AnimeThemesDownloader downloader, IUserManager userManager, ILogger logger)
     {
         _libraryManager = libraryManager;
+        _downloader = downloader;
         _logger = logger;
     }
 
@@ -36,10 +40,9 @@ public abstract class BaseThemeSearchTask
     /// Processes all relevant items and calls a callback function.
     /// </summary>
     /// <param name="progress">Progress indicator.</param>
-    /// <param name="handler">Handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A task that runs until the process is done.</returns>
-    protected async Task FindAndProcessAsync(IProgress<double> progress, Func<BaseItem, PluginConfiguration, CancellationToken, ValueTask> handler, CancellationToken cancellationToken)
+    protected async Task FindAndProcessAsync(IProgress<double> progress, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting theme search");
         var configuration = Plugin.Instance!.Configuration;
@@ -61,13 +64,20 @@ public abstract class BaseThemeSearchTask
             applicable);
         // @formatter:on
 
+        // Get the anime objects in chunks
+        var itemsWithAnime = await items.Chunk(ChunkSize)
+            .ToAsyncEnumerable()
+            .SelectMany((chunk) => _downloader.ResolveItems(chunk, configuration, cancellationToken))
+            .ToListAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+
         var semaphore = new SemaphoreSlim(1, 1);
         int counter = 0;
         int count = items.Count;
+
         // Process in parallel
-        await Parallel.ForEachAsync(items, new ParallelOptions { CancellationToken = cancellationToken, MaxDegreeOfParallelism = configuration.DegreeOfParallelism }, async (item, ct) =>
+        await Parallel.ForEachAsync(itemsWithAnime, new ParallelOptions { CancellationToken = cancellationToken, MaxDegreeOfParallelism = configuration.DegreeOfParallelism }, async (item, ct) =>
         {
-            await handler(item, configuration, ct).ConfigureAwait(false);
+            await _downloader.HandleAsync(item.Item, item.Anime.First(), configuration, ct).ConfigureAwait(false);
             await semaphore.WaitAsync(ct).ConfigureAwait(false);
             try
             {
