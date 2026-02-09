@@ -81,11 +81,19 @@
             },
             {
                 "checksum": "e5b47c4275b6c1da7d289190ab9ac538",
-                "changelog": "* fix: do not send a user-agent header to prevent the animethemes api from blocking us (#36) @EusthEnoptEron\n",
+                "changelog": "* fix: do not send a user-agent header to prevent the animethemes api from blocking us (#36) @EusthEnoptEron",
                 "targetAbi": "10.11.3.0",
                 "sourceUrl": "https://github.com/EusthEnoptEron/jellyfin-plugin-animethemes/releases/download/4/animethemes_4.0.0.0.zip",
                 "timestamp": "2026-02-07T22:38:17Z",
                 "version": "4.0.0.0"
+            },
+            {
+                "checksum": "eb5bfbb1ec1d301b80874d2d9e3d5dac",
+                "changelog": "* Batch requests to AnimeThemes API (#40) @EusthEnoptEron",
+                "targetAbi": "10.11.3.0",
+                "sourceUrl": "https://github.com/EusthEnoptEron/jellyfin-plugin-animethemes/releases/download/5/animethemes_5.0.0.0.zip",
+                "timestamp": "2026-02-09T17:52:00Z",
+                "version": "5.0.0.0"
             }
         ]
     }
