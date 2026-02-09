@@ -14,12 +14,17 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
     {
         serviceCollection.AddScoped<AnimeThemesDownloader>();
 
+        var productHeader = new ProductInfoHeaderValue(
+            "jf-plugin-animethemes",
+            applicationHost.ApplicationVersionString);
+
         serviceCollection.AddTransient<PollyResilienceHandler>();
 
         serviceCollection
             .AddHttpClient("AnimeThemes", c =>
             {
                 c.BaseAddress = new Uri("https://api.animethemes.moe");
+                c.DefaultRequestHeaders.UserAgent.Add(productHeader);
             })
             .AddHttpMessageHandler<PollyResilienceHandler>();
     }

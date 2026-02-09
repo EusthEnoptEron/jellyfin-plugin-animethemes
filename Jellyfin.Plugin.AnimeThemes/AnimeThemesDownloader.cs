@@ -95,7 +95,6 @@ public class AnimeThemesDownloader : IDisposable
     /// <returns>Task that runts until item is done processing.</returns>
     public async ValueTask HandleAsync(BaseItem item, Anime anime, PluginConfiguration configuration, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("[{Id}] Getting theme songs for item \"{Name}\"", item.Id, item.Name);
         _logger.LogInformation("[{Id}] Attempting to filter theme songs for: {Name} (AniDB={AniId})", item.Id, item.Name, anime.Id);
 
         bool isMovie = item.GetBaseItemKind() == BaseItemKind.Movie;
@@ -111,6 +110,10 @@ public class AnimeThemesDownloader : IDisposable
         {
             _logger.LogInformation("[{Id}] Saving metadata", item.Id);
             await item.RefreshMetadata(cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            _logger.LogInformation("[{Id}] Finished without changes", item.Id);
         }
     }
 
